@@ -3,7 +3,8 @@
 Uma tela só com tudo da vida pessoal e das empresas: áreas, tarefas e Google Agenda.
 Construída por etapas (plano de 29/10/2026):
 
-1. **Tela com áreas, tarefas e agenda** ← pronta (falta publicar)
+1. **Tela com áreas, tarefas e agenda** ← no ar: https://marcomartinssm.github.io/central/ (card no Portal)
+   + **Falar com a Central** (microfone/texto → Claude) ← no ar 29/10/2026
 2. E-mails → itens na área certa
 3. WhatsApp (Evolution) → conversas que precisam do Marco
 4. Números dos sistemas (CRM Aluguel, CRM Vendas, Resultado das Obras, Imoview)
@@ -27,3 +28,13 @@ Construída por etapas (plano de 29/10/2026):
 
 O antigo "Gestão Pessoal" (tabelas empresas/setores/projetos/tarefas/atividades) **não foi mexido**.
 Foi decisão do Marco começar do zero.
+
+## Falar com a Central (microfone)
+- Barra no topo da tela. 🎤 usa o reconhecimento de voz do navegador (pt-BR, grátis); onde não existe, use o 🎤 do teclado na caixa.
+  Ao parar de falar, envia sozinho; a resposta aparece e é falada em voz alta.
+- Função `central-comando` (verify_jwt ligado, só o dono): monta o contexto (áreas, tarefas abertas + feitas há 2 dias,
+  Google Agenda pela `central-agenda`) e pede ao Claude (`claude-opus-5-5`, effort low, chave `ANTHROPIC_API_KEY` dos secrets)
+  uma lista de ações: **criar, concluir, reabrir, alterar**. **Apagar não é feito por voz.** A função confere ids, datas e horas antes de gravar.
+  Tarefas criadas assim ficam com `origem = claude`.
+- Histórico de cada pedido (texto, resposta, ações, erro, custo em US$): tabela `central_comandos`.
+- `central-comando-teste` foi só para teste e está desativada (responde 410). Pode ser apagada no painel do Supabase.
