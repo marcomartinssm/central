@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Central">
+<title>Central do Marco</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --fundo: #f6f4f1; --card: #ffffff; --borda: #e6e1da; --texto: #2a2522; --suave: #7a716a;
+    --destaque: #7a1f2b; --destaque-claro: #f3e7e8;
+    --verde: #2f6b2f; --verde-claro: #e6f1e1; --ambar: #8a5a0b; --ambar-claro: #faefd9;
+    --vermelho: #b3261e; --vermelho-claro: #fbeaea; --azul: #2f5f8a; --azul-claro: #eaf1fb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --fundo: #17191c; --card: #202328; --borda: #30343a; --texto: #ecebe8; --suave: #9a9892;
+      --destaque: #e0808c; --destaque-claro: #3a2428;
+      --verde: #9fd39a; --verde-claro: #23331f; --ambar: #f0c070; --ambar-claro: #3a2f18;
+      --vermelho: #f2a49c; --vermelho-claro: #3a2222; --azul: #9cc3ec; --azul-claro: #1d2a3a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fundo); color: var(--texto); font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--borda); background: var(--card); color: var(--texto); padding: 6px 12px; }
+  button:hover { border-color: var(--suave); }
+  input, select, textarea { font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--borda); background: var(--card); color: var(--texto); min-width: 0; }
+  textarea { width: 100%; min-height: 70px; resize: vertical; }
+  .principal { background: var(--destaque); color: #fff; border-color: var(--destaque); }
+  @media (prefers-color-scheme: dark) { .principal { color: #17191c; } }
+  .link { border: none; background: none; color: var(--destaque); padding: 0; }
+  .oculto { display: none !important; }
+
+  #login { max-width: 360px; margin: 12vh auto; padding: 0 16px; }
+  #login .card { background: var(--card); border: 1px solid var(--borda); border-radius: 14px; padding: 24px; }
+  #login h1 { font-size: 20px; margin: 0 0 4px; }
+  #login p { color: var(--suave); margin: 0 0 18px; font-size: 14px; }
+  #login label { display: block; font-size: 13px; color: var(--suave); margin: 10px 0 4px; }
+  #login input { width: 100%; }
+  #login .principal { width: 100%; margin-top: 18px; padding: 10px; }
+  .erro { color: var(--vermelho); font-size: 13px; margin-top: 10px; min-height: 18px; }
+
+  header { display: flex; align-items: center; gap: 12px; padding: 12px 20px; background: var(--card); border-bottom: 1px solid var(--borda); }
+  header .marca { font-weight: 700; color: var(--destaque); font-size: 17px; }
+  header .hoje { color: var(--suave); font-size: 14px; flex: 1; }
+  header .quem { font-size: 13px; color: var(--suave); }
+
+  .layout { display: grid; grid-template-columns: 240px 1fr; max-width: 1180px; margin: 0 auto; gap: 20px; padding: 20px 16px 80px; }
+  main { min-width: 0; }
+  aside .grupo { margin-bottom: 4px; }
+  aside button.area { display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 6px; border: none; background: none; text-align: left; padding: 6px 10px; border-radius: 8px; color: var(--texto); }
+  aside button.area:hover { background: var(--card); }
+  aside button.area.ativo { background: var(--destaque-claro); color: var(--destaque); font-weight: 600; }
+  aside button.area.sub { padding-left: 32px; font-size: 14px; color: var(--suave); }
+  aside button.area.sub.ativo { color: var(--destaque); }
+  aside .n { font-size: 12px; color: var(--suave); font-weight: 400; display: flex; gap: 6px; align-items: center; }
+  aside .n .atr { color: #fff; background: var(--vermelho); font-weight: 600; border-radius: 999px; padding: 0 6px; font-size: 11px; line-height: 17px; }
+  @media (prefers-color-scheme: dark) { aside .n .atr { color: #17191c; } }
+  aside .rodape { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--borda); }
+
+  .chips { display: none; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; }
+  .chips button { white-space: nowrap; border-radius: 999px; font-size: 14px; }
+  .chips button.ativo { background: var(--destaque-claro); color: var(--destaque); border-color: transparent; font-weight: 600; }
+
+  h2 { font-size: 20px; margin: 0 0 14px; }
+  .novo { display: flex; gap: 8px; flex-wrap: wrap; background: var(--card); border: 1px solid var(--borda); border-radius: 12px; padding: 10px; margin-bottom: 18px; }
+  .novo input[name=titulo] { flex: 1 1 260px; }
+  .novo select { flex: 0 1 200px; }
+  .novo .estrela { padding: 6px 10px; }
+
+  .resumo { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin-bottom: 18px; }
+  .resumo button { text-align: left; padding: 12px; border-radius: 12px; background: var(--card); }
+  .resumo .t { font-weight: 600; display: block; }
+  .resumo .s { font-size: 13px; color: var(--suave); }
+  .resumo .s b.atr { color: var(--vermelho); }
+
+  .bloco { background: var(--card); border: 1px solid var(--borda); border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; }
+  .bloco h3 { margin: 0 0 8px; font-size: 15px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .bloco h3 .n { font-weight: 400; color: var(--suave); font-size: 13px; }
+  .bloco.atrasado { border-color: var(--vermelho); }
+  .bloco.atrasado h3 { color: var(--vermelho); }
+  .vazio { color: var(--suave); font-size: 14px; margin: 4px 0; }
+  .dia { font-size: 13px; font-weight: 600; color: var(--suave); margin: 12px 0 2px; }
+  .dia:first-of-type { margin-top: 0; }
+
+  .item { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; border-top: 1px solid var(--borda); }
+  .dia + .item, h3 + .item { border-top: none; }
+  .item input[type=checkbox] { width: 19px; height: 19px; margin-top: 2px; accent-color: var(--destaque); flex: none; cursor: pointer; }
+  .item .corpo { flex: 1; min-width: 0; cursor: pointer; }
+  .item .titulo { word-break: break-word; }
+  .item.feita .titulo { text-decoration: line-through; color: var(--suave); }
+  .item .meta { font-size: 12px; color: var(--suave); display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag { font-size: 12px; padding: 0 7px; border-radius: 999px; background: var(--fundo); border: 1px solid var(--borda); color: var(--suave); }
+  .item .hora { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--suave); width: 44px; flex: none; padding-top: 1px; }
+  .evento { display: flex; gap: 10px; padding: 6px 0 6px 10px; border-left: 3px solid var(--azul); margin: 4px 0; background: var(--azul-claro); border-radius: 0 8px 8px 0; }
+  .evento .hora { color: var(--azul); }
+  .evento .local { font-size: 12px; color: var(--suave); }
+  .estrelinha { color: var(--ambar); }
+
+  .conectar ol { margin: 6px 0 10px; padding-left: 20px; font-size: 14px; }
+  .conectar .linha { display: flex; gap: 8px; }
+  .conectar input { flex: 1; }
+
+  dialog { border: 1px solid var(--borda); border-radius: 14px; background: var(--card); color: var(--texto); padding: 20px; width: min(460px, calc(100vw - 32px)); }
+  dialog::backdrop { background: rgba(0,0,0,.35); }
+  dialog h3 { margin: 0 0 12px; }
+  dialog label { display: block; font-size: 13px; color: var(--suave); margin: 10px 0 4px; }
+  dialog input, dialog select { width: 100%; }
+  dialog .linha { display: flex; gap: 8px; }
+  dialog .botoes { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+  dialog .botoes .apagar { margin-right: auto; color: var(--vermelho); }
+  .areas-lista .linha-area { display: flex; gap: 6px; align-items: center; margin: 4px 0; }
+  .areas-lista .linha-area.sub { padding-left: 22px; }
+  .areas-lista input { flex: 1; }
+
+  .aviso { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--texto); color: var(--fundo); padding: 8px 16px; border-radius: 8px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .aviso.mostra { opacity: 1; }
+
+  @media (max-width: 760px) {
+    header { padding: 10px 16px; }
+    header .hoje { display: none; }
+    .layout { grid-template-columns: minmax(0, 1fr); padding: 14px 16px 80px; }
+    aside { display: none; }
+    .chips { display: flex; }
+    .novo input[name=titulo] { flex: 1 1 100%; }
+    .novo select { flex: 1 1 100%; }
+    .novo input[type=date] { flex: 1 1 0; }
+    .novo input[type=time] { flex: 0 1 110px; }
+    .novo .principal { flex: 1 1 100%; }
+    .resumo { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div id="login" class="oculto">
+  <div class="card">
+    <h1>Central do Marco</h1>
+    <p>Entre com o mesmo login dos seus sistemas.</p>
+    <form id="form-login">
+      <label for="email">E-mail</label>
+      <input id="email" type="email" autocomplete="username" required>
+      <label for="senha">Senha</label>
+      <input id="senha" type="password" autocomplete="current-password" required>
+      <button class="principal" type="submit">Entrar</button>
+      <div class="erro" id="erro-login"></div>
+    </form>
+  </div>
+</div>
+
+<div id="app" class="oculto">
+  <header>
+    <span class="marca">Central</span>
+    <span class="hoje" id="hoje-texto"></span>
+    <span class="quem"><button class="link" id="sair">Sair</button></span>
+  </header>
+  <div class="layout">
+    <aside>
+      <div id="lista-areas"></div>
+      <div class="rodape"><button class="link" id="abrir-areas">Organizar áreas</button></div>
+    </aside>
+    <main>
+      <div class="chips" id="chips"></div>
+      <h2 id="titulo-visao">Visão geral</h2>
+
+      <form class="novo" id="form-novo">
+        <input name="titulo" placeholder="O que precisa ser feito?" autocomplete="off" required>
+        <select name="area" id="novo-area"></select>
+        <input name="data" type="date">
+        <input name="hora" type="time">
+        <button type="button" class="estrela" id="novo-estrela" title="Importante">☆</button>
+        <button class="principal" type="submit">Adicionar</button>
+      </form>
+
+      <div class="resumo" id="resumo"></div>
+      <div id="blocos"></div>
+    </main>
+  </div>
+</div>
+
+<dialog id="dlg-tarefa">
+  <form method="dialog" id="form-tarefa">
+    <h3>Tarefa</h3>
+    <label>O que é</label>
+    <input name="titulo" required>
+    <label>Área</label>
+    <select name="area" id="tarefa-area"></select>
+    <div class="linha">
+      <div style="flex:1"><label>Dia</label><input name="data" type="date"></div>
+      <div style="flex:1"><label>Hora</label><input name="hora" type="time"></div>
+    </div>
+    <label><input type="checkbox" name="importante" style="width:auto"> Importante</label>
+    <label>Anotações</label>
+    <textarea name="notas"></textarea>
+    <div class="botoes">
+      <button type="button" class="apagar" id="tarefa-apagar">Apagar</button>
+      <button type="button" id="tarefa-cancelar">Cancelar</button>
+      <button class="principal" type="submit">Salvar</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlg-areas">
+  <h3>Organizar áreas</h3>
+  <p class="vazio">Mude os nomes, crie sub-áreas (cada obra, por exemplo) ou esconda o que não usa.</p>
+  <div class="areas-lista" id="areas-lista"></div>
+  <div class="linha" style="display:flex;gap:8px;margin-top:12px">
+    <input id="nova-area-nome" placeholder="Nova área principal" style="flex:1">
+    <button id="nova-area-add">Criar</button>
+  </div>
+  <div class="botoes"><button class="principal" id="areas-fechar">Pronto</button></div>
+</dialog>
+
+<div class="aviso" id="aviso"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = "https://jgdbnkwhmesgjvsymgma.supabase.co";
+const SUPABASE_KEY = "sb_publishable_qvAy43WiHGUyk0aitpg_WQ_2xYfKEKu";
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+let areas = [];        // todas as áreas ativas
+let tarefas = [];      // abertas + feitas nos últimos 2 dias
+let eventos = [];      // Google Agenda (próximos 8 dias)
+let agendaConectada = null;
+let agendaErro = "";
+let filtro = null;     // id da área escolhida (null = visão geral)
+let editando = null;
+
+// ---------- datas (sempre no horário do aparelho) ----------
+const diaISO = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const hoje = () => diaISO(new Date());
+const somaDias = (iso, n) => { const d = new Date(iso + "T12:00:00"); d.setDate(d.getDate() + n); return diaISO(d); };
+const nomeDia = (iso) => {
+  if (iso === hoje()) return "Hoje";
+  if (iso === somaDias(hoje(), 1)) return "Amanhã";
+  const t = new Date(iso + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
+  return t.charAt(0).toUpperCase() + t.slice(1);
+};
+const dataCurta = (iso) => new Date(iso + "T12:00:00").toLocaleDateString("pt-BR", { day: "numeric", month: "short" });
+const hhmm = (h) => (h ? h.slice(0, 5) : "");
+
+function aviso(txt) { const a = $("aviso"); a.textContent = txt; a.classList.add("mostra"); clearTimeout(aviso.t); aviso.t = setTimeout(() => a.classList.remove("mostra"), 2200); }
+
+// ---------- áreas ----------
+const principais = () => areas.filter((a) => !a.pai_id).sort((a, b) => a.ordem - b.ordem);
+const filhas = (id) => areas.filter((a) => a.pai_id === id).sort((a, b) => a.ordem - b.ordem);
+const areaPorId = (id) => areas.find((a) => a.id === id);
+const nomeArea = (id) => { const a = areaPorId(id); if (!a) return "Sem área"; const p = a.pai_id && areaPorId(a.pai_id); return p ? `${p.nome} · ${a.nome}` : a.nome; };
+const familia = (id) => [id, ...filhas(id).map((f) => f.id)];
+
+function opcoesAreas(sel) {
+  let h = `<option value="">Sem área</option>`;
+  for (const p of principais()) {
+    h += `<option value="${p.id}">${esc(p.icone || "")} ${esc(p.nome)}</option>`;
+    for (const f of filhas(p.id)) h += `<option value="${f.id}">&nbsp;&nbsp;&nbsp;${esc(f.nome)}</option>`;
+  }
+  sel.innerHTML = h;
+}
+
+// ---------- contagens ----------
+function contar(ids) {
+  const t = tarefas.filter((x) => !x.feita && (ids === null || ids.includes(x.area_id)));
+  return { abertas: t.length, atrasadas: t.filter((x) => x.data && x.data < hoje()).length, hoje: t.filter((x) => x.data === hoje()).length };
+}
+
+// ---------- carregar ----------
+async function carregar() {
+  const corte = new Date(Date.now() - 2 * 864e5).toISOString();
+  const [ra, rt] = await Promise.all([
+    db.from("central_areas").select("*").eq("ativo", true),
+    db.from("central_tarefas").select("*").or(`feita.eq.false,feita_em.gte.${corte}`).order("data", { nullsFirst: false }).order("hora", { nullsFirst: true }),
+  ]);
+  if (ra.error || rt.error) { aviso("Erro ao carregar: " + (ra.error || rt.error).message); return; }
+  areas = ra.data; tarefas = rt.data;
+  opcoesAreas($("novo-area")); opcoesAreas($("tarefa-area"));
+  if (filtro) $("novo-area").value = filtro;
+  desenhar();
+  carregarAgenda();
+}
+
+async function carregarAgenda() {
+  const { data, error } = await db.functions.invoke("central-agenda", {
+    body: { inicio: new Date(hoje() + "T00:00:00").toISOString(), fim: new Date(somaDias(hoje(), 8) + "T00:00:00").toISOString() },
+  });
+  if (error) { agendaConectada = true; agendaErro = "Não consegui ler o Google Agenda agora."; eventos = []; }
+  else { agendaConectada = data.conectada; agendaErro = data.erro || ""; eventos = data.eventos || []; }
+  desenhar();
+}
+
+// eventos do Google por dia (dia inteiro aparece em todos os dias que cobre)
+function eventosDoDia(iso) {
+  return eventos.filter((e) => {
+    if (e.dia_todo) return e.inicio <= iso && iso < e.fim;
+    return diaISO(new Date(e.inicio)) === iso;
+  });
+}
+
+// ---------- desenhar ----------
+function desenhar() {
+  $("hoje-texto").textContent = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
+  desenharAreas();
+  const area = filtro && areaPorId(filtro);
+  $("titulo-visao").textContent = area ? `${area.icone || ""} ${nomeArea(filtro)}`.trim() : "Visão geral";
+
+  const ids = filtro ? familia(filtro) : null;
+  const minhas = tarefas.filter((t) => ids === null || ids.includes(t.area_id));
+  const abertas = minhas.filter((t) => !t.feita);
+  const h = hoje(), fimSemana = somaDias(h, 7);
+
+  // cartões de resumo: na visão geral, uma por área principal; numa área, uma por sub-área
+  const cards = (filtro ? filhas(filtro) : principais());
+  $("resumo").innerHTML = cards.map((a) => {
+    const c = contar(familia(a.id));
+    const partes = [];
+    if (c.atrasadas) partes.push(`<b class="atr">${c.atrasadas} atrasada${c.atrasadas > 1 ? "s" : ""}</b>`);
+    if (c.hoje) partes.push(`${c.hoje} hoje`);
+    partes.push(c.abertas ? `${c.abertas} aberta${c.abertas > 1 ? "s" : ""}` : "nada aberto");
+    return `<button data-area="${a.id}"><span class="t">${esc(a.icone || "")} ${esc(a.nome)}</span><span class="s">${partes.join(" · ")}</span></button>`;
+  }).join("");
+  $("resumo").querySelectorAll("button").forEach((b) => (b.onclick = () => escolher(b.dataset.area)));
+
+  let html = "";
+
+  // Google Agenda só na visão geral (os compromissos ainda não têm área)
+  if (!filtro && agendaConectada === false) html += blocoConectar();
+  if (!filtro && agendaErro) html += `<div class="bloco"><p class="vazio">⚠️ ${esc(agendaErro)}</p></div>`;
+
+  const atrasadas = abertas.filter((t) => t.data && t.data < h);
+  if (atrasadas.length) html += `<div class="bloco atrasado"><h3>Atrasadas <span class="n">${atrasadas.length}</span></h3>${atrasadas.map((t) => linhaTarefa(t, true)).join("")}</div>`;
+
+  // Hoje: compromissos + tarefas (feitas hoje aparecem riscadas)
+  const tarefasHoje = minhas.filter((t) => t.data === h && (!t.feita || (t.feita_em && diaISO(new Date(t.feita_em)) === h)));
+  html += `<div class="bloco"><h3>Hoje <span class="n">${tarefasHoje.filter((t) => !t.feita).length} tarefa(s)${!filtro && agendaConectada ? ` · ${eventosDoDia(h).length} compromisso(s)` : ""}</span></h3>${diaMisturado(h, tarefasHoje, !filtro) || `<p class="vazio">Nada marcado pra hoje.</p>`}</div>`;
+
+  // Próximos 7 dias
+  let prox = "";
+  for (let i = 1; i <= 7; i++) {
+    const d = somaDias(h, i);
+    const ts = abertas.filter((t) => t.data === d);
+    const conteudo = diaMisturado(d, ts, !filtro);
+    if (conteudo) prox += `<div class="dia">${nomeDia(d)}</div>${conteudo}`;
+  }
+  html += `<div class="bloco"><h3>Próximos 7 dias</h3>${prox || `<p class="vazio">Nada nos próximos dias.</p>`}</div>`;
+
+  const depois = abertas.filter((t) => t.data && t.data > fimSemana);
+  if (depois.length) html += `<div class="bloco"><h3>Mais pra frente <span class="n">${depois.length}</span></h3>${depois.map((t) => linhaTarefa(t, true)).join("")}</div>`;
+
+  const semData = abertas.filter((t) => !t.data);
+  html += `<div class="bloco"><h3>Sem data <span class="n">${semData.length}</span></h3>${semData.map((t) => linhaTarefa(t)).join("") || `<p class="vazio">Tudo que não tem dia aparece aqui.</p>`}</div>`;
+
+  $("blocos").innerHTML = html;
+  ligarItens();
+}
+
+function diaMisturado(iso, ts, comAgenda) {
+  const itens = [];
+  if (comAgenda) for (const e of eventosDoDia(iso)) itens.push({ chave: e.dia_todo ? "00:00" : new Date(e.inicio).toTimeString().slice(0, 5), html: linhaEvento(e) });
+  for (const t of ts) itens.push({ chave: t.hora ? hhmm(t.hora) : "99", html: linhaTarefa(t) });
+  itens.sort((a, b) => a.chave.localeCompare(b.chave));
+  return itens.map((i) => i.html).join("");
+}
+
+function linhaEvento(e) {
+  const hora = e.dia_todo ? "dia" : new Date(e.inicio).toTimeString().slice(0, 5);
+  return `<div class="evento"><span class="hora">${hora}</span><div><div>${esc(e.titulo)}</div>${e.local ? `<div class="local">${esc(e.local)}</div>` : ""}</div></div>`;
+}
+
+function linhaTarefa(t, mostraData) {
+  const meta = [];
+  if (mostraData && t.data) meta.push(dataCurta(t.data));
+  if (!filtro || familia(filtro).length > 1) meta.push(`<span class="tag">${esc(nomeArea(t.area_id))}</span>`);
+  if (t.notas) meta.push("📝");
+  return `<div class="item ${t.feita ? "feita" : ""}" data-id="${t.id}">
+    <input type="checkbox" ${t.feita ? "checked" : ""} title="Marcar como feita">
+    ${t.hora ? `<span class="hora">${hhmm(t.hora)}</span>` : ""}
+    <div class="corpo"><div class="titulo">${t.importante ? '<span class="estrelinha">★</span> ' : ""}${esc(t.titulo)}</div>${meta.length ? `<div class="meta">${meta.join("")}</div>` : ""}</div>
+  </div>`;
+}
+
+function blocoConectar() {
+  return `<div class="bloco conectar"><h3>Ligar o Google Agenda</h3>
+    <ol>
+      <li>No computador, abra o <b>Google Agenda</b> e clique na engrenagem → <b>Configurações</b>.</li>
+      <li>Na esquerda, clique no nome da sua agenda (em "Configurações das minhas agendas").</li>
+      <li>Desça até <b>"Endereço secreto no formato iCal"</b> e copie.</li>
+      <li>Cole aqui embaixo. Só a Central consegue ler esse endereço.</li>
+    </ol>
+    <div class="linha"><input id="ical" placeholder="https://calendar.google.com/calendar/ical/..."><button class="principal" id="ical-salvar">Ligar</button></div>
+  </div>`;
+}
+
+function desenharAreas() {
+  const linha = (a, sub) => {
+    const c = contar(familia(a.id));
+    return `<button class="area ${sub ? "sub" : ""} ${filtro === a.id ? "ativo" : ""}" data-area="${a.id}">
+      <span>${sub ? "" : esc(a.icone || "") + " "}${esc(a.nome)}</span>
+      <span class="n">${c.atrasadas ? `<span class="atr">${c.atrasadas}</span>` : ""}${c.abertas || ""}</span></button>`;
+  };
+  const g = contar(null);
+  let h = `<button class="area ${!filtro ? "ativo" : ""}" data-area=""><span>🗂️ Visão geral</span><span class="n">${g.atrasadas ? `<span class="atr">${g.atrasadas}</span>` : ""}${g.abertas || ""}</span></button>`;
+  for (const p of principais()) h += `<div class="grupo">${linha(p)}${filhas(p.id).map((f) => linha(f, true)).join("")}</div>`;
+  $("lista-areas").innerHTML = h;
+  $("lista-areas").querySelectorAll("button.area").forEach((b) => (b.onclick = () => escolher(b.dataset.area || null)));
+
+  // celular: chips das áreas principais
+  $("chips").innerHTML = `<button class="${!filtro ? "ativo" : ""}" data-area="">Visão geral</button>` +
+    principais().map((p) => `<button class="${filtro && familia(p.id).includes(filtro) ? "ativo" : ""}" data-area="${p.id}">${esc(p.icone || "")} ${esc(p.nome)}</button>`).join("") +
+    `<button data-organizar="1">⚙️ Áreas</button>`;
+  $("chips").querySelectorAll("button").forEach((b) => (b.onclick = () => b.dataset.organizar ? $("abrir-areas").onclick() : escolher(b.dataset.area || null)));
+  $("chips").querySelector(".ativo")?.scrollIntoView({ block: "nearest", inline: "center" });
+}
+
+function escolher(id) {
+  filtro = id || null;
+  $("novo-area").value = filtro || "";
+  desenhar();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function ligarItens() {
+  document.querySelectorAll(".item").forEach((el) => {
+    const t = tarefas.find((x) => x.id === el.dataset.id);
+    el.querySelector("input").onchange = (ev) => marcar(t, ev.target.checked);
+    el.querySelector(".corpo").onclick = () => abrirTarefa(t);
+  });
+  const salvar = $("ical-salvar");
+  if (salvar) salvar.onclick = async () => {
+    const link = $("ical").value.trim();
+    const { error } = await db.rpc("central_agenda_salvar_link", { p_link: link });
+    if (error) return aviso(error.message);
+    aviso("Google Agenda ligado");
+    carregarAgenda();
+  };
+}
+
+// ---------- ações ----------
+async function marcar(t, feita) {
+  const { data, error } = await db.from("central_tarefas").update({ feita }).eq("id", t.id).select().single();
+  if (error) return aviso("Erro: " + error.message);
+  Object.assign(t, data);
+  aviso(feita ? "Feita ✓" : "Reaberta");
+  desenhar();
+}
+
+let novaImportante = false;
+$("novo-estrela").onclick = () => { novaImportante = !novaImportante; $("novo-estrela").textContent = novaImportante ? "★" : "☆"; };
+
+$("form-novo").onsubmit = async (ev) => {
+  ev.preventDefault();
+  const f = ev.target;
+  const nova = { titulo: f.titulo.value.trim(), area_id: f.area.value || null, data: f.data.value || null, hora: f.hora.value || null, importante: novaImportante };
+  if (!nova.titulo) return;
+  const { data, error } = await db.from("central_tarefas").insert(nova).select().single();
+  if (error) return aviso("Erro: " + error.message);
+  tarefas.push(data);
+  f.titulo.value = ""; f.hora.value = ""; novaImportante = false; $("novo-estrela").textContent = "☆";
+  aviso("Adicionada");
+  desenhar();
+  f.titulo.focus();
+};
+
+function abrirTarefa(t) {
+  editando = t;
+  const f = $("form-tarefa");
+  f.titulo.value = t.titulo; f.area.value = t.area_id || ""; f.data.value = t.data || ""; f.hora.value = hhmm(t.hora);
+  f.importante.checked = t.importante; f.notas.value = t.notas || "";
+  $("dlg-tarefa").showModal();
+}
+$("tarefa-cancelar").onclick = () => $("dlg-tarefa").close();
+$("form-tarefa").onsubmit = async (ev) => {
+  ev.preventDefault();
+  const f = ev.target;
+  const mud = { titulo: f.titulo.value.trim(), area_id: f.area.value || null, data: f.data.value || null, hora: f.hora.value || null, importante: f.importante.checked, notas: f.notas.value.trim() || null };
+  const { data, error } = await db.from("central_tarefas").update(mud).eq("id", editando.id).select().single();
+  if (error) return aviso("Erro: " + error.message);
+  Object.assign(editando, data);
+  $("dlg-tarefa").close();
+  desenhar();
+};
+$("tarefa-apagar").onclick = async () => {
+  if (!confirm("Apagar esta tarefa?")) return;
+  const { error } = await db.from("central_tarefas").delete().eq("id", editando.id);
+  if (error) return aviso("Erro: " + error.message);
+  tarefas = tarefas.filter((x) => x.id !== editando.id);
+  $("dlg-tarefa").close();
+  desenhar();
+};
+
+// ---------- organizar áreas ----------
+function desenharListaAreas() {
+  let h = "";
+  for (const p of principais()) {
+    h += `<div class="linha-area"><input value="${esc(p.nome)}" data-id="${p.id}"><button data-sub="${p.id}" title="Criar sub-área">＋ sub</button><button data-esconder="${p.id}" title="Esconder">✕</button></div>`;
+    for (const f of filhas(p.id)) h += `<div class="linha-area sub"><input value="${esc(f.nome)}" data-id="${f.id}"><button data-esconder="${f.id}" title="Esconder">✕</button></div>`;
+  }
+  $("areas-lista").innerHTML = h;
+  $("areas-lista").querySelectorAll("input").forEach((i) => (i.onchange = async () => {
+    const nome = i.value.trim(); if (!nome) return;
+    await db.from("central_areas").update({ nome }).eq("id", i.dataset.id);
+    areaPorId(i.dataset.id).nome = nome;
+  }));
+  $("areas-lista").querySelectorAll("[data-sub]").forEach((b) => (b.onclick = async () => {
+    const nome = prompt("Nome da sub-área (ex.: Obra Rua das Flores)"); if (!nome) return;
+    const { data, error } = await db.from("central_areas").insert({ pai_id: b.dataset.sub, nome: nome.trim(), ordem: filhas(b.dataset.sub).length + 1 }).select().single();
+    if (error) return aviso(error.message);
+    areas.push(data); desenharListaAreas();
+  }));
+  $("areas-lista").querySelectorAll("[data-esconder]").forEach((b) => (b.onclick = async () => {
+    const a = areaPorId(b.dataset.esconder);
+    if (!confirm(`Esconder "${a.nome}"? As tarefas dela continuam guardadas.`)) return;
+    await db.from("central_areas").update({ ativo: false }).in("id", familia(a.id));
+    areas = areas.filter((x) => !familia(a.id).includes(x.id));
+    if (filtro && !areaPorId(filtro)) filtro = null;
+    desenharListaAreas();
+  }));
+}
+$("abrir-areas").onclick = () => { desenharListaAreas(); $("dlg-areas").showModal(); };
+$("nova-area-add").onclick = async () => {
+  const nome = $("nova-area-nome").value.trim(); if (!nome) return;
+  const { data, error } = await db.from("central_areas").insert({ nome, ordem: principais().length + 1 }).select().single();
+  if (error) return aviso(error.message);
+  areas.push(data); $("nova-area-nome").value = ""; desenharListaAreas();
+};
+$("areas-fechar").onclick = () => { $("dlg-areas").close(); opcoesAreas($("novo-area")); opcoesAreas($("tarefa-area")); $("novo-area").value = filtro || ""; desenhar(); };
+
+// ---------- login ----------
+async function iniciar() {
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) { $("login").classList.remove("oculto"); $("app").classList.add("oculto"); return; }
+  const { data: dono } = await db.rpc("central_e_dono");
+  if (!dono) { await db.auth.signOut(); $("erro-login").textContent = "Este login não tem acesso à Central."; $("login").classList.remove("oculto"); return; }
+  $("login").classList.add("oculto"); $("app").classList.remove("oculto");
+  $("form-novo").data.value = hoje();
+  carregar();
+}
+$("form-login").onsubmit = async (ev) => {
+  ev.preventDefault();
+  $("erro-login").textContent = "";
+  const { error } = await db.auth.signInWithPassword({ email: $("email").value.trim(), password: $("senha").value });
+  if (error) { $("erro-login").textContent = "E-mail ou senha incorretos."; return; }
+  iniciar();
+};
+$("sair").onclick = async () => { await db.auth.signOut(); location.reload(); };
+
+// volta a atualizar quando a tela é aberta de novo (celular)
+document.addEventListener("visibilitychange", () => { if (!document.hidden && !$("app").classList.contains("oculto")) carregar(); });
+
+iniciar();
+</script>
+</body>
+</html>
