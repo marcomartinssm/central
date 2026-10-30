@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opção 1 · Jarvis HUD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #03070c; --painel: rgba(8, 24, 36, .72); --linha: rgba(63, 240, 255, .22); --ciano: #3ff0ff; --ciano2: #0fb8d6; --texto: #cfefff; --suave: #6f97ab; --alerta: #ff4d6d; --ouro: #ffc857; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--texto); font: 500 16px/1.45 Rajdhani, sans-serif; letter-spacing: .02em; overflow-x: hidden; }
+  body::before { content: ""; position: fixed; inset: 0; pointer-events: none;
+    background: linear-gradient(var(--linha) 1px, transparent 1px) 0 0 / 48px 48px, linear-gradient(90deg, var(--linha) 1px, transparent 1px) 0 0 / 48px 48px;
+    opacity: .25; mask-image: radial-gradient(ellipse at 50% 30%, #000 30%, transparent 80%); }
+  body::after { content: ""; position: fixed; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 3px); }
+  .mono { font-family: "JetBrains Mono", monospace; }
+
+  header { position: relative; z-index: 1; display: flex; align-items: center; gap: 18px; padding: 16px 28px; border-bottom: 1px solid var(--linha); }
+  .logo { font: 700 18px Orbitron, sans-serif; letter-spacing: .3em; color: var(--ciano); text-shadow: 0 0 12px rgba(63,240,255,.6); }
+  .status { font: 11px "JetBrains Mono", monospace; color: var(--suave); display: flex; gap: 16px; flex: 1; }
+  .status b { color: var(--ciano); font-weight: 600; }
+  .ponto { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #39ff9c; box-shadow: 0 0 8px #39ff9c; margin-right: 6px; animation: pisca 2s infinite; }
+  @keyframes pisca { 50% { opacity: .3; } }
+  .relogio { font: 700 22px Orbitron, sans-serif; color: var(--ciano); }
+
+  .grade { position: relative; z-index: 1; display: grid; grid-template-columns: 340px 1fr 320px; gap: 22px; padding: 24px 28px 60px; max-width: 1400px; margin: 0 auto; }
+  .painel { position: relative; background: var(--painel); border: 1px solid var(--linha); padding: 18px 20px; backdrop-filter: blur(6px);
+    clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px)); }
+  .painel::before, .painel::after { content: ""; position: absolute; width: 14px; height: 14px; border: 2px solid var(--ciano); }
+  .painel::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+  .painel::after { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+  .painel + .painel { margin-top: 22px; }
+  h3 { margin: 0 0 14px; font: 600 12px Orbitron, sans-serif; letter-spacing: .25em; color: var(--ciano); display: flex; justify-content: space-between; }
+  h3 span { color: var(--suave); font-family: "JetBrains Mono"; letter-spacing: 0; }
+
+  /* núcleo de voz */
+  .nucleo { display: grid; place-items: center; padding: 10px 0 4px; }
+  .orbe { position: relative; width: 210px; height: 210px; display: grid; place-items: center; cursor: pointer; }
+  .anel { position: absolute; inset: 0; border-radius: 50%; border: 1px solid var(--linha); }
+  .anel.a1 { border: 2px dashed rgba(63,240,255,.45); animation: gira 18s linear infinite; }
+  .anel.a2 { inset: 18px; border: 2px solid transparent; border-top-color: var(--ciano); border-bottom-color: var(--ciano); animation: gira 6s linear infinite reverse; filter: drop-shadow(0 0 6px var(--ciano)); }
+  .anel.a3 { inset: 38px; border: 1px solid rgba(63,240,255,.35); }
+  .centro { width: 104px; height: 104px; border-radius: 50%; display: grid; place-items: center; font-size: 34px;
+    background: radial-gradient(circle, rgba(63,240,255,.55), rgba(15,184,214,.15) 60%, transparent 70%); box-shadow: 0 0 40px rgba(63,240,255,.5), inset 0 0 30px rgba(63,240,255,.4); animation: respira 3s ease-in-out infinite; }
+  @keyframes gira { to { transform: rotate(360deg); } }
+  @keyframes respira { 50% { box-shadow: 0 0 70px rgba(63,240,255,.75), inset 0 0 40px rgba(63,240,255,.6); } }
+  .dica { font: 11px "JetBrains Mono"; color: var(--suave); text-align: center; margin-top: 12px; letter-spacing: .1em; }
+  .entrada { display: flex; margin-top: 16px; border: 1px solid var(--linha); }
+  .entrada input { flex: 1; background: transparent; border: 0; color: var(--texto); font: 14px "JetBrains Mono"; padding: 10px 12px; outline: none; min-width: 0; }
+  .entrada button { background: var(--ciano); color: var(--bg); border: 0; font: 700 11px Orbitron; letter-spacing: .15em; padding: 0 14px; cursor: pointer; }
+  .conversa { font-size: 15px; margin-top: 16px; }
+  .conversa .voce { color: var(--suave); font: 12px "JetBrains Mono"; }
+  .conversa .ia { border-left: 2px solid var(--ciano); padding-left: 10px; margin-top: 6px; }
+
+  /* números */
+  .numeros { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 22px; }
+  .num { border: 1px solid var(--linha); padding: 12px 14px; background: var(--painel); }
+  .num b { display: block; font: 700 30px Orbitron; color: var(--ciano); text-shadow: 0 0 14px rgba(63,240,255,.5); }
+  .num.vermelho b { color: var(--alerta); text-shadow: 0 0 14px rgba(255,77,109,.5); }
+  .num span { font: 10px "JetBrains Mono"; color: var(--suave); letter-spacing: .15em; text-transform: uppercase; }
+
+  /* linha do tempo */
+  .tempo { position: relative; padding-left: 26px; }
+  .tempo::before { content: ""; position: absolute; left: 6px; top: 6px; bottom: 6px; width: 1px; background: linear-gradient(var(--ciano), transparent); }
+  .ev { position: relative; padding: 9px 0 9px; border-bottom: 1px dashed rgba(63,240,255,.12); display: flex; gap: 14px; align-items: baseline; }
+  .ev::before { content: ""; position: absolute; left: -24px; top: 15px; width: 9px; height: 9px; transform: rotate(45deg); border: 1px solid var(--ciano); background: var(--bg); }
+  .ev.agenda::before { background: var(--ciano); box-shadow: 0 0 10px var(--ciano); }
+  .ev .h { font: 600 13px "JetBrains Mono"; color: var(--ciano); width: 46px; flex: none; }
+  .ev .t { flex: 1; font-size: 17px; }
+  .ev .tag { font: 10px "JetBrains Mono"; color: var(--suave); border: 1px solid var(--linha); padding: 1px 6px; letter-spacing: .05em; white-space: nowrap; }
+  .ev.feita .t { text-decoration: line-through; color: var(--suave); }
+  .estrela { color: var(--ouro); }
+  .dia { font: 600 11px Orbitron; letter-spacing: .2em; color: var(--suave); margin: 16px 0 4px; text-transform: uppercase; }
+
+  /* áreas */
+  .area { display: grid; grid-template-columns: 26px 1fr auto; gap: 4px 10px; align-items: center; padding: 10px 0; border-bottom: 1px dashed rgba(63,240,255,.12); }
+  .area .barra { grid-column: 2 / 4; height: 4px; background: rgba(63,240,255,.1); }
+  .area .barra i { display: block; height: 100%; background: linear-gradient(90deg, var(--ciano2), var(--ciano)); box-shadow: 0 0 8px var(--ciano); }
+  .area .n { font: 12px "JetBrains Mono"; color: var(--suave); }
+  .area .n b { color: var(--alerta); }
+  .alerta { border-color: rgba(255,77,109,.5); }
+  .alerta h3 { color: var(--alerta); }
+  .alerta::before, .alerta::after { border-color: var(--alerta); }
+  .atr { padding: 8px 0; border-bottom: 1px dashed rgba(255,77,109,.2); }
+  .atr small { display: block; font: 11px "JetBrains Mono"; color: var(--suave); }
+
+  @media (max-width: 1100px) { .grade { grid-template-columns: 1fr 1fr; } .grade > :nth-child(2) { grid-column: 1 / -1; order: -1; } }
+  @media (max-width: 720px) {
+    header { padding: 12px 16px; } .status { display: none; } .logo { flex: 1; font-size: 15px; }
+    .grade { grid-template-columns: minmax(0, 1fr); padding: 16px 16px 50px; gap: 16px; }
+    .grade > :nth-child(2) { order: 0; }
+    .numeros { grid-template-columns: repeat(2, 1fr); }
+    .orbe { width: 170px; height: 170px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">CENTRAL</div>
+  <div class="status"><span><span class="ponto"></span>SISTEMA ONLINE</span><span>AGENDA <b>SINCRONIZADA</b></span><span>OPERADOR <b>MARCO</b></span></div>
+  <div class="relogio" id="relogio"></div>
+</header>
+
+<div class="grade">
+  <div>
+    <div class="painel">
+      <h3>ASSISTENTE <span>pt-BR</span></h3>
+      <div class="nucleo">
+        <div class="orbe"><div class="anel a1"></div><div class="anel a2"></div><div class="anel a3"></div><div class="centro">🎙️</div></div>
+        <div class="dica">TOQUE NO NÚCLEO E FALE</div>
+      </div>
+      <div class="entrada"><input placeholder="> digite um comando..."><button>ENVIAR</button></div>
+      <div class="conversa" id="conversa"></div>
+    </div>
+    <div class="painel alerta" style="margin-top:22px">
+      <h3>ATRASADAS <span id="n-atr"></span></h3>
+      <div id="atrasadas"></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="numeros" id="numeros"></div>
+    <div class="painel">
+      <h3>HOJE · <span id="data"></span></h3>
+      <div class="tempo" id="hoje"></div>
+    </div>
+    <div class="painel">
+      <h3>PRÓXIMOS DIAS</h3>
+      <div class="tempo" id="semana"></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="painel">
+      <h3>SETORES <span>abertas</span></h3>
+      <div id="areas"></div>
+    </div>
+  </div>
+</div>
+
+<script src="dados.js"></script>
+<script>
+const D = DADOS, $ = (id) => document.getElementById(id);
+const tick = () => $("relogio").textContent = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+tick(); setInterval(tick, 1000);
+$("data").textContent = D.data;
+$("conversa").innerHTML = `<div class="voce">&gt; ${D.ultimaFala.voce}</div><div class="ia">${D.ultimaFala.central}</div>`;
+$("numeros").innerHTML = [["abertas", D.numeros.abertas], ["hoje", D.numeros.hoje], ["atrasadas", D.numeros.atrasadas, "vermelho"], ["feitas/sem", D.numeros.feitasSemana]]
+  .map(([r, n, c]) => `<div class="num ${c || ""}"><b>${String(n).padStart(2, "0")}</b><span>${r}</span></div>`).join("");
+const ev = (i) => `<div class="ev ${i.tipo} ${i.feita ? "feita" : ""}"><span class="h">${i.hora || "--:--"}</span><span class="t">${i.importante ? '<span class="estrela">★</span> ' : ""}${i.titulo}</span>${i.area ? `<span class="tag">${i.area}</span>` : ""}</div>`;
+$("hoje").innerHTML = D.hoje.map(ev).join("");
+$("semana").innerHTML = D.semana.map((d) => `<div class="dia">${d.dia}</div>${d.itens.map(ev).join("")}`).join("");
+$("n-atr").textContent = D.atrasadas.length;
+$("atrasadas").innerHTML = D.atrasadas.map((a) => `<div class="atr">${a.importante ? '<span class="estrela">★</span> ' : ""}${a.titulo}<small>${a.area} · ${a.quando}</small></div>`).join("");
+const max = Math.max(...D.areas.map((a) => a.abertas));
+$("areas").innerHTML = D.areas.map((a) => `<div class="area"><span>${a.icone}</span><span>${a.nome}</span><span class="n">${a.atrasadas ? `<b>${a.atrasadas}!</b> ` : ""}${a.abertas}</span><div class="barra"><i style="width:${a.abertas / max * 100}%"></i></div></div>`).join("");
+</script>
+</body>
+</html>

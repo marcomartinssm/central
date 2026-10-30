@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opção 3 · Bento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #08080a; --tile: #111114; --tile2: #16161a; --borda: #232329; --texto: #ededf0; --suave: #85858f; --lima: #c6ff3d; --alerta: #ff5c5c; --azul: #5ab0ff; --ouro: #ffcf5c; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--texto); font: 400 14px/1.5 Geist, sans-serif; -webkit-font-smoothing: antialiased;
+    background-image: radial-gradient(circle at 50% -10%, rgba(198,255,61,.08), transparent 45%); min-height: 100vh; }
+  .mono { font-family: "Geist Mono", monospace; }
+  .tela { max-width: 1240px; margin: 0 auto; padding: 22px 24px 80px; }
+
+  nav { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+  .marca { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+  .marca i { width: 22px; height: 22px; border-radius: 7px; background: var(--lima); box-shadow: 0 0 18px rgba(198,255,61,.5); display: inline-block; }
+  nav .abas { display: flex; gap: 2px; background: var(--tile); border: 1px solid var(--borda); border-radius: 10px; padding: 3px; margin-left: 12px; }
+  nav .abas span { padding: 5px 12px; border-radius: 7px; color: var(--suave); font-size: 13px; cursor: pointer; }
+  nav .abas span.on { background: var(--tile2); color: var(--texto); box-shadow: inset 0 0 0 1px var(--borda); }
+  nav .dir { margin-left: auto; color: var(--suave); font-size: 13px; }
+
+  /* barra de comando */
+  .comando { position: relative; display: flex; align-items: center; gap: 12px; background: var(--tile); border-radius: 16px; padding: 12px 14px; margin-bottom: 16px;
+    border: 1px solid transparent; background-clip: padding-box; }
+  .comando::before { content: ""; position: absolute; inset: -1px; border-radius: 17px; z-index: -1; background: linear-gradient(90deg, rgba(198,255,61,.7), rgba(90,176,255,.5), rgba(198,255,61,.1)); }
+  .mic { width: 40px; height: 40px; border-radius: 12px; background: var(--lima); color: #000; display: grid; place-items: center; font-size: 18px; flex: none; cursor: pointer; }
+  .onda { display: flex; gap: 3px; align-items: center; height: 22px; }
+  .onda i { width: 3px; border-radius: 2px; background: var(--lima); animation: onda 1.2s ease-in-out infinite; }
+  @keyframes onda { 0%, 100% { height: 4px; opacity: .4; } 50% { height: 20px; opacity: 1; } }
+  .comando input { flex: 1; background: none; border: 0; outline: none; color: var(--texto); font: 400 16px Geist; min-width: 0; }
+  .comando input::placeholder { color: var(--suave); }
+  .tecla { font: 12px "Geist Mono"; color: var(--suave); border: 1px solid var(--borda); border-radius: 6px; padding: 2px 7px; }
+
+  .bento { display: grid; grid-template-columns: repeat(12, 1fr); grid-auto-rows: minmax(90px, auto); gap: 14px; }
+  .t { background: var(--tile); border: 1px solid var(--borda); border-radius: 18px; padding: 18px; position: relative; overflow: hidden; transition: border-color .2s; }
+  .t:hover { border-color: #34343c; }
+  .t h4 { margin: 0 0 12px; font-size: 12px; font-weight: 500; color: var(--suave); text-transform: uppercase; letter-spacing: .08em; display: flex; justify-content: space-between; }
+
+  .resposta { grid-column: span 12; display: flex; gap: 12px; align-items: flex-start; padding: 14px 18px; }
+  .resposta .av { width: 26px; height: 26px; border-radius: 8px; background: var(--lima); flex: none; }
+  .resposta small { color: var(--suave); display: block; }
+
+  .agora { grid-column: span 5; grid-row: span 2; background: linear-gradient(160deg, #1a2208, var(--tile) 55%); }
+  .agora .big { font-size: 46px; font-weight: 600; letter-spacing: -.03em; line-height: 1; margin: 6px 0; }
+  .agora .big span { color: var(--lima); }
+  .agora .prox { margin-top: 18px; padding: 14px; border-radius: 14px; background: rgba(0,0,0,.35); border: 1px solid var(--borda); }
+  .agora .prox small { color: var(--suave); }
+  .agora .prox b { display: block; font-size: 17px; font-weight: 500; margin-top: 2px; }
+  .agora .conta { font: 500 13px "Geist Mono"; color: var(--lima); }
+
+  .stat { grid-column: span 2; display: flex; flex-direction: column; justify-content: space-between; }
+  .stat b { font-size: 34px; font-weight: 600; letter-spacing: -.03em; }
+  .stat.vermelho b { color: var(--alerta); }
+  .stat svg { width: 100%; height: 26px; }
+
+  .hoje { grid-column: span 7; grid-row: span 3; }
+  .li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--borda); }
+  .li:first-of-type { border-top: 0; }
+  .li .h { font: 12px "Geist Mono"; color: var(--suave); width: 42px; }
+  .li .c { width: 16px; height: 16px; border-radius: 5px; border: 1.5px solid #3a3a42; flex: none; }
+  .li.feita .c { background: var(--lima); border-color: var(--lima); }
+  .li.feita .x { color: var(--suave); text-decoration: line-through; }
+  .li.agenda .c { border-radius: 50%; border-color: var(--azul); background: rgba(90,176,255,.2); }
+  .li .x { flex: 1; }
+  .li .tag { font-size: 11px; color: var(--suave); background: var(--tile2); border: 1px solid var(--borda); border-radius: 6px; padding: 1px 7px; white-space: nowrap; }
+  .estrela { color: var(--ouro); }
+
+  .atr { grid-column: span 5; grid-row: span 2; border-color: rgba(255,92,92,.35); }
+  .atr h4 { color: var(--alerta); }
+  .atr .li .c { border-color: var(--alerta); }
+  .atr small { color: var(--alerta); font: 12px "Geist Mono"; }
+
+  .semana { grid-column: span 7; }
+  .dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+  .d { background: var(--tile2); border: 1px solid var(--borda); border-radius: 12px; padding: 10px; min-height: 92px; }
+  .d.on { border-color: var(--lima); box-shadow: 0 0 0 1px var(--lima) inset; }
+  .d small { color: var(--suave); font-size: 11px; text-transform: uppercase; }
+  .d b { display: block; font-size: 20px; font-weight: 600; }
+  .d i { display: block; height: 4px; border-radius: 2px; background: var(--lima); margin-top: 5px; opacity: .85; }
+  .d i.ag { background: var(--azul); }
+
+  .areas { grid-column: span 5; }
+  .ar { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+  .ar .nome { flex: 1; }
+  .ar .pts { display: flex; gap: 3px; }
+  .ar .pts i { width: 8px; height: 14px; border-radius: 2px; background: #2a2a31; }
+  .ar .pts i.on { background: var(--lima); }
+  .ar .pts i.red { background: var(--alerta); }
+  .ar .n { font: 12px "Geist Mono"; color: var(--suave); width: 22px; text-align: right; }
+
+  @media (max-width: 980px) {
+    .agora, .hoje, .atr, .semana, .areas { grid-column: span 12; }
+    .stat { grid-column: span 4; }
+    .agora, .hoje, .atr { grid-row: auto; }
+  }
+  @media (max-width: 600px) {
+    .tela { padding: 16px 16px 60px; }
+    nav .abas, nav .dir, .tecla { display: none; }
+    .stat { grid-column: span 6; }
+    .dias { grid-template-columns: repeat(4, 1fr); }
+    .li .tag { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="tela">
+  <nav>
+    <div class="marca"><i></i>Central</div>
+    <div class="abas"><span class="on">Visão geral</span><span>Pessoal</span><span>Projetar</span><span>Construtora</span><span>Seguralta</span><span>Morgana</span></div>
+    <div class="dir" id="data"></div>
+  </nav>
+
+  <div class="comando"><div class="mic">🎙️</div><div class="onda"><i></i><i style="animation-delay:.15s"></i><i style="animation-delay:.3s"></i><i style="animation-delay:.45s"></i><i style="animation-delay:.6s"></i></div>
+    <input placeholder="Fale ou escreva… “passa a degustação pra sábado”"><span class="tecla">⏎</span></div>
+
+  <div class="bento">
+    <div class="t resposta" id="resposta"></div>
+
+    <div class="t agora">
+      <h4>Agora <span class="mono" id="relogio"></span></h4>
+      <div class="big" id="saudacao"></div>
+      <div style="color:var(--suave)">Você tem <b style="color:var(--texto)">5 coisas</b> hoje e <b style="color:var(--alerta)">2 atrasadas</b>.</div>
+      <div class="prox"><small>Próximo compromisso</small><b>Reunião com contador</b><span class="conta">em 1h 18min · 17:00</span></div>
+    </div>
+
+    <div class="t stat"><h4>Abertas</h4><b id="s1"></b><svg viewBox="0 0 100 26"><polyline fill="none" stroke="#c6ff3d" stroke-width="2" points="0,20 15,18 30,22 45,12 60,15 75,8 100,10"/></svg></div>
+    <div class="t stat"><h4>Hoje</h4><b id="s2"></b><svg viewBox="0 0 100 26"><polyline fill="none" stroke="#5ab0ff" stroke-width="2" points="0,14 15,16 30,10 45,18 60,12 75,14 100,6"/></svg></div>
+    <div class="t stat vermelho"><h4>Atrasadas</h4><b id="s3"></b><svg viewBox="0 0 100 26"><polyline fill="none" stroke="#ff5c5c" stroke-width="2" points="0,8 15,12 30,10 45,16 60,14 75,20 100,22"/></svg></div>
+
+    <div class="t hoje"><h4>Hoje <span id="n-hoje"></span></h4><div id="hoje"></div></div>
+    <div class="t atr"><h4>Atrasadas <span id="n-atr"></span></h4><div id="atrasadas"></div></div>
+    <div class="t semana"><h4>Semana</h4><div class="dias" id="dias"></div></div>
+    <div class="t areas"><h4>Setores <span>abertas</span></h4><div id="areas"></div></div>
+  </div>
+</div>
+<script src="dados.js"></script>
+<script>
+const D = DADOS, $ = (id) => document.getElementById(id);
+const tick = () => $("relogio").textContent = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+tick(); setInterval(tick, 10000);
+$("data").textContent = D.data;
+$("saudacao").innerHTML = D.saudacao.replace("Marco", "<span>Marco</span>");
+$("resposta").innerHTML = `<div class="av"></div><div><small>Você: “${D.ultimaFala.voce}”</small>${D.ultimaFala.central}</div>`;
+$("s1").textContent = D.numeros.abertas; $("s2").textContent = D.numeros.hoje; $("s3").textContent = D.numeros.atrasadas;
+const li = (i) => `<div class="li ${i.tipo} ${i.feita ? "feita" : ""}"><span class="h">${i.hora || "—"}</span><span class="c"></span><span class="x">${i.importante ? '<span class="estrela">★</span> ' : ""}${i.titulo}</span>${i.area ? `<span class="tag">${i.area}</span>` : ""}</div>`;
+$("hoje").innerHTML = D.hoje.map(li).join(""); $("n-hoje").textContent = D.hoje.length;
+$("n-atr").textContent = D.atrasadas.length;
+$("atrasadas").innerHTML = D.atrasadas.map((a) => `<div class="li"><span class="c"></span><span class="x">${a.importante ? '<span class="estrela">★</span> ' : ""}${a.titulo}<br><small>${a.area} · ${a.quando}</small></span></div>`).join("");
+const sem = [["qui", 29, [1, 1, 1, 0, 0]], ["sex", 30, [0, 1]], ["sáb", 31, [1]], ["dom", 1, []], ["seg", 2, [1]], ["ter", 3, []], ["qua", 4, [0, 1]]];
+$("dias").innerHTML = sem.map(([d, n, it], k) => `<div class="d ${k === 0 ? "on" : ""}"><small>${d}</small><b>${n}</b>${it.map((x) => `<i class="${x ? "" : "ag"}"></i>`).join("")}</div>`).join("");
+$("areas").innerHTML = D.areas.map((a) => `<div class="ar"><span>${a.icone}</span><span class="nome">${a.nome}</span><span class="pts">${Array.from({ length: 8 }, (_, k) => `<i class="${k < a.atrasadas ? "red" : k < a.abertas ? "on" : ""}"></i>`).join("")}</span><span class="n">${a.abertas}</span></div>`).join("");
+</script>
+</body>
+</html>

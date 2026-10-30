@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opção 2 · Vidro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --texto: #f4f1f6; --suave: rgba(244,241,246,.6); --vidro: rgba(255,255,255,.07); --borda: rgba(255,255,255,.14); --vinho: #c23b5a; --roxo: #7c4dff; --azul: #2fb5ff; --alerta: #ff7a8a; --ouro: #ffd27a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; color: var(--texto); font: 400 15px/1.5 Sora, sans-serif; background: #0b0710; overflow-x: hidden; }
+  .aurora { position: fixed; inset: -20%; z-index: 0; filter: blur(90px); opacity: .75; pointer-events: none; }
+  .aurora i { position: absolute; border-radius: 50%; animation: flutua 22s ease-in-out infinite alternate; }
+  .aurora i:nth-child(1) { width: 55vw; height: 55vw; background: #7a1f3d; left: 0; top: 0; }
+  .aurora i:nth-child(2) { width: 45vw; height: 45vw; background: #4b2bb3; right: 0; top: 10%; animation-delay: -6s; }
+  .aurora i:nth-child(3) { width: 40vw; height: 40vw; background: #0d6b9c; left: 30%; bottom: 0; animation-delay: -12s; }
+  @keyframes flutua { to { transform: translate(8vw, 6vh) scale(1.15); } }
+
+  .tela { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 32px 24px 120px; }
+  .vidro { background: var(--vidro); border: 1px solid var(--borda); border-radius: 28px; backdrop-filter: blur(28px) saturate(140%); -webkit-backdrop-filter: blur(28px) saturate(140%);
+    box-shadow: 0 20px 60px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.12); }
+
+  .topo { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 26px; flex-wrap: wrap; }
+  .topo h1 { margin: 0; font-weight: 300; font-size: clamp(30px, 5vw, 50px); letter-spacing: -.02em; }
+  .topo h1 b { font-weight: 700; background: linear-gradient(90deg, #ff9db3, #b9a2ff, #8fdcff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .topo p { margin: 4px 0 0; color: var(--suave); }
+  .pilulas { display: flex; gap: 10px; }
+  .pilula { padding: 10px 16px; border-radius: 999px; font-size: 13px; }
+  .pilula b { font-size: 18px; margin-right: 4px; }
+  .pilula.alerta b { color: var(--alerta); }
+
+  /* barra de voz */
+  .voz { display: flex; align-items: center; gap: 14px; padding: 10px 10px 10px 12px; border-radius: 999px; margin-bottom: 14px; }
+  .orbe { width: 56px; height: 56px; border-radius: 50%; flex: none; cursor: pointer; position: relative;
+    background: conic-gradient(from 0deg, #ff6b8b, #a46bff, #3fc8ff, #ff6b8b); animation: gira 6s linear infinite; box-shadow: 0 0 30px rgba(164,107,255,.6); }
+  .orbe::after { content: "🎙️"; position: absolute; inset: 5px; border-radius: 50%; background: rgba(15,10,22,.75); display: grid; place-items: center; font-size: 20px; animation: gira 6s linear infinite reverse; }
+  @keyframes gira { to { transform: rotate(360deg); } }
+  .voz input { flex: 1; background: none; border: 0; outline: none; color: var(--texto); font: 300 18px Sora; min-width: 0; }
+  .voz input::placeholder { color: var(--suave); }
+  .voz button { border: 0; border-radius: 999px; padding: 12px 22px; font: 600 14px Sora; color: #fff; cursor: pointer; background: linear-gradient(90deg, var(--vinho), var(--roxo)); }
+  .resposta { padding: 16px 22px; border-radius: 22px; margin-bottom: 26px; display: flex; gap: 14px; align-items: flex-start; }
+  .resposta .bolinha { width: 30px; height: 30px; border-radius: 50%; flex: none; background: conic-gradient(#ff6b8b, #a46bff, #3fc8ff, #ff6b8b); }
+  .resposta small { color: var(--suave); display: block; margin-bottom: 2px; }
+
+  .grade { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; }
+  .card { padding: 22px 24px; }
+  .card h2 { margin: 0 0 14px; font-size: 15px; font-weight: 600; display: flex; justify-content: space-between; }
+  .card h2 span { color: var(--suave); font-weight: 400; }
+
+  .item { display: flex; gap: 14px; align-items: center; padding: 11px 12px; border-radius: 16px; margin: 0 -12px; }
+  .item:hover { background: rgba(255,255,255,.06); }
+  .item .h { width: 48px; font-size: 13px; color: var(--suave); flex: none; }
+  .item .check { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--borda); flex: none; }
+  .item.feita .check { background: linear-gradient(135deg, var(--vinho), var(--roxo)); border: 0; }
+  .item.feita .t { text-decoration: line-through; color: var(--suave); }
+  .item.agenda .check { border: 0; background: rgba(47,181,255,.25); position: relative; }
+  .item.agenda .check::after { content: ""; position: absolute; inset: 7px; border-radius: 50%; background: var(--azul); box-shadow: 0 0 10px var(--azul); }
+  .item .t { flex: 1; }
+  .item .area { font-size: 12px; color: var(--suave); padding: 3px 10px; border-radius: 999px; background: rgba(255,255,255,.07); white-space: nowrap; }
+  .estrela { color: var(--ouro); }
+  .dia { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--suave); margin: 16px 0 2px; }
+
+  .atrasada { padding: 12px 14px; border-radius: 16px; background: rgba(255,122,138,.12); border: 1px solid rgba(255,122,138,.25); margin-bottom: 10px; }
+  .atrasada small { display: block; color: var(--alerta); font-size: 12px; }
+
+  .areas { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin: 20px 0; }
+  .ar { padding: 18px; text-align: center; border-radius: 24px; }
+  .anel { width: 74px; height: 74px; margin: 0 auto 10px; border-radius: 50%; display: grid; place-items: center; font-size: 26px; position: relative; }
+  .anel::before { content: ""; position: absolute; inset: 0; border-radius: 50%; padding: 4px; background: conic-gradient(var(--c1) var(--p), rgba(255,255,255,.1) 0);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+  .ar b { display: block; font-size: 14px; font-weight: 600; }
+  .ar small { color: var(--suave); font-size: 12px; }
+  .ar small.vermelho { color: var(--alerta); }
+
+  @media (max-width: 900px) { .grade { grid-template-columns: minmax(0, 1fr); } .areas { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 600px) {
+    .tela { padding: 22px 16px 100px; }
+    .areas { grid-template-columns: repeat(2, 1fr); }
+    .voz button { display: none; }
+    .pilulas { width: 100%; } .pilula { flex: 1; text-align: center; padding: 8px; }
+    .item .area { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="aurora"><i></i><i></i><i></i></div>
+<div class="tela">
+  <div class="topo">
+    <div><h1 id="saudacao"></h1><p id="data"></p></div>
+    <div class="pilulas" id="pilulas"></div>
+  </div>
+
+  <div class="voz vidro"><div class="orbe"></div><input placeholder="Fale ou escreva o que precisa…"><button>Enviar</button></div>
+  <div class="resposta vidro" id="resposta"></div>
+
+  <div class="areas" id="areas"></div>
+
+  <div class="grade">
+    <div class="card vidro"><h2>Hoje <span id="n-hoje"></span></h2><div id="hoje"></div></div>
+    <div>
+      <div class="card vidro" style="margin-bottom:20px"><h2>Atrasadas <span id="n-atr"></span></h2><div id="atrasadas"></div></div>
+      <div class="card vidro"><h2>Próximos dias</h2><div id="semana"></div></div>
+    </div>
+  </div>
+</div>
+<script src="dados.js"></script>
+<script>
+const D = DADOS, $ = (id) => document.getElementById(id);
+const [oi, nome] = D.saudacao.split(", ");
+$("saudacao").innerHTML = `${oi}, <b>${nome}</b>`;
+$("data").textContent = D.data;
+$("pilulas").innerHTML = `<div class="pilula vidro"><b>${D.numeros.hoje}</b>hoje</div><div class="pilula vidro alerta"><b>${D.numeros.atrasadas}</b>atrasadas</div><div class="pilula vidro"><b>${D.numeros.feitasSemana}</b>feitas na semana</div>`;
+$("resposta").innerHTML = `<div class="bolinha"></div><div><small>Você: “${D.ultimaFala.voce}”</small>${D.ultimaFala.central}</div>`;
+const cores = ["#ff8fab", "#c23b5a", "#ffb35c", "#4fd1a5", "#b98cff"];
+const max = Math.max(...D.areas.map((a) => a.abertas));
+$("areas").innerHTML = D.areas.map((a, i) => `<div class="ar vidro"><div class="anel" style="--c1:${cores[i]};--p:${a.abertas / max * 100}%">${a.icone}</div><b>${a.nome}</b>
+  <small class="${a.atrasadas ? "vermelho" : ""}">${a.atrasadas ? a.atrasadas + " atrasada · " : ""}${a.abertas} abertas</small></div>`).join("");
+const item = (i) => `<div class="item ${i.tipo} ${i.feita ? "feita" : ""}"><span class="h">${i.hora || "—"}</span><span class="check"></span><span class="t">${i.importante ? '<span class="estrela">★</span> ' : ""}${i.titulo}</span>${i.area ? `<span class="area">${i.area}</span>` : ""}</div>`;
+$("hoje").innerHTML = D.hoje.map(item).join(""); $("n-hoje").textContent = D.hoje.length + " itens";
+$("semana").innerHTML = D.semana.map((d) => `<div class="dia">${d.dia}</div>${d.itens.map(item).join("")}`).join("");
+$("n-atr").textContent = D.atrasadas.length;
+$("atrasadas").innerHTML = D.atrasadas.map((a) => `<div class="atrasada">${a.importante ? '<span class="estrela">★</span> ' : ""}${a.titulo}<small>${a.area} · venceu ${a.quando}</small></div>`).join("");
+</script>
+</body>
+</html>
