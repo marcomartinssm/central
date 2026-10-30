@@ -40,3 +40,11 @@ Foi decisão do Marco começar do zero.
   Tarefas criadas assim ficam com `origem = claude`.
 - Histórico de cada pedido (texto, resposta, ações, erro, custo em US$): tabela `central_comandos`.
 - `central-comando-teste` foi só para teste e está desativada (responde 410). Pode ser apagada no painel do Supabase.
+
+## Etapa 2 — E-mails
+- Tabelas `central_email_contas` (senha só no Vault) e `central_emails`.
+- Função `central-emails` (verify_jwt false; aceita `?token=` do `central_config.cron_token` ou o dono logado; `?conta=` lê só uma conta).
+  Lê por IMAP só leitura (EXAMINE + BODY.PEEK), o Claude (sonnet) classifica: acao / importante / informativo / ignorar; "acao" vira tarefa (origem 'email').
+- Agendador: `cron.schedule('central-emails', '*/15 * * * *', 'select public.central_chamar_emails()')`.
+- Tela: botão "✉️ E-mails" (ligar/desligar contas, verificar agora) e o quadro "E-mails" na coluna da direita (botão "visto").
+- Gmail precisa de senha de app; @seguralta.com.br usa mail.claramail.com.br com a senha normal.

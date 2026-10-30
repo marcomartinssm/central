@@ -193,6 +193,29 @@
   .areas-lista input { flex: 1; }
   .areas-lista button { border: 1px solid var(--borda); background: rgba(255,255,255,.05); border-radius: 10px; padding: 7px 10px; white-space: nowrap; }
 
+  /* e-mails */
+  .mail { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; margin: 0 -12px; border-radius: 14px; }
+  .mail:hover { background: rgba(255,255,255,.05); }
+  .mail .corpo { flex: 1; min-width: 0; cursor: pointer; }
+  .mail .resumo-mail { word-break: break-word; }
+  .mail .meta { font-size: 12px; color: var(--suave); display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+  .mail .detalhe { display: none; font-size: 13px; color: var(--suave); margin-top: 6px; white-space: pre-wrap; word-break: break-word; }
+  .mail.aberto .detalhe { display: block; }
+  .mail .visto { flex: none; border: 1px solid var(--borda); background: rgba(255,255,255,.05); border-radius: 10px; padding: 4px 9px; font-size: 12px; color: var(--suave); }
+  .mail .visto:hover { border-color: var(--ciano); color: var(--texto); }
+  .selo { flex: none; font: 600 10px var(--mono); letter-spacing: .08em; text-transform: uppercase; padding: 3px 7px; border-radius: 8px; margin-top: 2px; }
+  .selo.acao { background: rgba(255,107,129,.16); color: var(--alerta); }
+  .selo.importante { background: rgba(255,210,122,.14); color: var(--ouro); }
+  .selo.informativo { background: rgba(79,243,255,.1); color: var(--ciano); }
+  .contas .conta { display: flex; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
+  .contas .conta div { flex: 1; min-width: 0; word-break: break-all; }
+  .contas small { display: block; font-size: 12px; color: var(--suave); word-break: normal; }
+  .contas small.erro { color: var(--alerta); }
+  .contas button { border: 1px solid var(--borda); background: rgba(255,255,255,.05); border-radius: 10px; padding: 6px 9px; white-space: nowrap; font-size: 12px; }
+  .ajuda { font-size: 13px; color: var(--suave); margin: 10px 0 0; }
+  .ajuda summary { cursor: pointer; color: var(--ciano); }
+  .ajuda ol { padding-left: 18px; margin: 6px 0; }
+
   .aviso { position: fixed; z-index: 10; bottom: 22px; left: 50%; transform: translateX(-50%); background: rgba(18,20,34,.92); border: 1px solid rgba(79,243,255,.4); color: var(--texto);
     padding: 9px 18px; border-radius: 999px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; box-shadow: 0 0 20px rgba(79,243,255,.25); }
   .aviso.mostra { opacity: 1; }
@@ -312,6 +335,35 @@
   <div class="botoes"><button class="principal" id="areas-fechar">Pronto</button></div>
 </dialog>
 
+<dialog id="dlg-emails">
+  <h3>E-mails ligados</h3>
+  <p class="vazio">A Central lê só a caixa de entrada, sem marcar como lido e sem apagar nada. A cada 15 minutos ela olha os novos, separa o que importa e cria tarefa quando tem algo pra fazer.</p>
+  <div class="contas" id="contas-lista"></div>
+  <form id="form-conta" autocomplete="off">
+    <label>E-mail</label>
+    <input name="email" type="email" placeholder="voce@gmail.com" required>
+    <label id="rotulo-senha">Senha</label>
+    <input name="senha" type="password" autocomplete="new-password" required>
+    <label>Área padrão</label>
+    <select name="area" id="conta-area"></select>
+    <details class="ajuda" open>
+      <summary>Qual senha usar?</summary>
+      <p><b>Gmail:</b> não é a senha normal, é uma <b>senha de app</b>:</p>
+      <ol>
+        <li>Abra <b>myaccount.google.com</b> → Segurança → ligue a <b>Verificação em duas etapas</b> (se ainda não estiver).</li>
+        <li>Na busca do topo, digite <b>Senhas de app</b>.</li>
+        <li>Dê o nome "Central" e clique em Criar. Copie as 16 letras e cole aqui.</li>
+      </ol>
+      <p><b>Seguralta (@seguralta.com.br):</b> a senha normal do e-mail.</p>
+      <p>A senha fica guardada no cofre do Supabase; nem a tela consegue ler depois.</p>
+    </details>
+    <div class="botoes">
+      <button type="button" class="botao" id="emails-fechar">Fechar</button>
+      <button class="principal" type="submit" id="conta-ligar">Ligar e-mail</button>
+    </div>
+  </form>
+</dialog>
+
 <div class="aviso" id="aviso"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -328,6 +380,8 @@ let tarefas = [];      // abertas + feitas nos últimos 7 dias
 let eventos = [];      // Google Agenda (próximos 8 dias)
 let agendaConectada = null;
 let agendaErro = "";
+let contasEmail = [];  // contas de e-mail ligadas
+let emails = [];       // e-mails ainda não vistos (sem os ignorados)
 let filtro = null;     // id da área escolhida (null = visão geral)
 let editando = null;
 
@@ -394,6 +448,18 @@ async function carregar() {
   $("novo-area").value = filtro || "";
   desenhar();
   carregarAgenda();
+  carregarEmails();
+}
+
+async function carregarEmails() {
+  const [rc, re] = await Promise.all([
+    db.from("central_email_contas").select("id, email, area_id, ativo, lido_em, erro").eq("ativo", true).order("email"),
+    db.from("central_emails").select("*").eq("visto", false).neq("categoria", "ignorar").order("recebido_em", { ascending: false }).limit(80),
+  ]);
+  if (rc.error || re.error) return;
+  contasEmail = rc.data; emails = re.data;
+  desenhar();
+  if ($("dlg-emails").open) desenharContas();
 }
 
 async function carregarAgenda() {
@@ -468,7 +534,7 @@ function desenhar() {
   esq += `<div class="card vidro"><h3>Próximos 7 dias</h3><div class="tempo">${prox || `<p class="vazio">Nada nos próximos dias.</p>`}</div></div>`;
 
   // coluna da direita: atrasadas, mais pra frente, sem data
-  let dir = "";
+  let dir = blocoEmails(ids);
   const atrasadas = abertas.filter((t) => t.data && t.data < h);
   if (atrasadas.length) dir += `<div class="card vidro hud alerta"><h3>Atrasadas <span>${atrasadas.length}</span></h3>${atrasadas.map((t) => linhaTarefa(t, "atraso")).join("")}</div>`;
   const depois = abertas.filter((t) => t.data && t.data > fimSemana);
@@ -520,6 +586,83 @@ function blocoConectar() {
   </div>`;
 }
 
+const SELO = { acao: "a fazer", importante: "importante", informativo: "info" };
+function blocoEmails(ids) {
+  if (!contasEmail.length) return filtro ? "" : `<div class="card vidro"><h3>E-mails</h3><p class="vazio">Nenhum e-mail ligado ainda.</p><button class="link" data-abrir-emails="1">✉️ Ligar e-mails</button></div>`;
+  const lista = emails.filter((e) => ids === null || ids.includes(e.area_id));
+  const ordem = { acao: 0, importante: 1, informativo: 2 };
+  lista.sort((a, b) => (ordem[a.categoria] ?? 3) - (ordem[b.categoria] ?? 3) || String(b.recebido_em).localeCompare(String(a.recebido_em)));
+  const comErro = contasEmail.filter((c) => c.erro).length;
+  const linhas = lista.slice(0, 15).map((e) => {
+    const quem = e.de_nome || e.de_email || "?";
+    const meta = [`<span>${esc(quem)}</span>`, e.recebido_em ? `<span>${quandoFoi(e.recebido_em)}</span>` : ""];
+    if (e.area_id && (!filtro || familia(filtro).length > 1)) meta.push(`<span class="tag">${esc(nomeArea(e.area_id))}</span>`);
+    if (e.tarefa_id) meta.push(`<span class="tag">✓ virou tarefa</span>`);
+    return `<div class="mail" data-mail="${e.id}"><span class="selo ${e.categoria}">${SELO[e.categoria] || e.categoria}</span>
+      <div class="corpo"><div class="resumo-mail">${esc(e.resumo || e.assunto)}</div><div class="meta">${meta.join("")}</div>
+      <div class="detalhe"><b>${esc(e.assunto)}</b>\n${esc(e.de_email)}\n\n${esc(e.trecho || "")}</div></div>
+      <button class="visto" title="Já vi, tirar da lista">visto</button></div>`;
+  }).join("");
+  const mais = lista.length > 15 ? `<p class="vazio">+ ${lista.length - 15} mais antigos</p>` : "";
+  return `<div class="card vidro hud"><h3>E-mails <span>${lista.length} novo${lista.length === 1 ? "" : "s"}${comErro ? ` · ⚠️ ${comErro} com problema` : ""}</span></h3>
+    ${linhas || `<p class="vazio">Nada novo que precise de atenção.</p>`}${mais}
+    <button class="link" data-abrir-emails="1">✉️ Contas de e-mail</button></div>`;
+}
+
+function quandoFoi(iso) {
+  const min = Math.round((Date.now() - new Date(iso)) / 60000);
+  if (min < 60) return `há ${Math.max(1, min)} min`;
+  if (min < 24 * 60) return `há ${Math.round(min / 60)} h`;
+  return dataCurta(diaISO(new Date(iso)));
+}
+
+function desenharContas() {
+  $("contas-lista").innerHTML = contasEmail.map((c) => `<div class="conta"><div>${esc(c.email)}
+      <small>${esc(c.area_id ? nomeArea(c.area_id) : "Mista (a Central decide a área)")}</small>
+      ${c.erro ? `<small class="erro">⚠️ ${esc(c.erro)}</small>` : `<small>${c.lido_em ? "Lido " + quandoFoi(c.lido_em) : "Ainda não lido"}</small>`}</div>
+      <button data-verificar="${c.id}">Verificar agora</button><button data-desligar="${c.id}">Desligar</button></div>`).join("") ||
+    `<p class="vazio">Nenhuma conta ligada ainda.</p>`;
+  $("contas-lista").querySelectorAll("[data-verificar]").forEach((b) => (b.onclick = () => verificarEmails(b.dataset.verificar)));
+  $("contas-lista").querySelectorAll("[data-desligar]").forEach((b) => (b.onclick = async () => {
+    const c = contasEmail.find((x) => x.id === b.dataset.desligar);
+    if (!confirm(`Desligar ${c.email}? A Central para de ler esse e-mail e apaga a senha guardada.`)) return;
+    const { error } = await db.rpc("central_email_desligar", { p_conta: c.id });
+    if (error) return aviso(error.message);
+    aviso("E-mail desligado"); carregarEmails();
+  }));
+}
+
+async function verificarEmails(conta) {
+  aviso("Lendo os e-mails… pode levar até 1 minuto");
+  const { data, error } = await db.functions.invoke("central-emails" + (conta ? "?conta=" + conta : ""), { body: {} });
+  if (error) aviso("Não consegui ler agora");
+  else {
+    const erro = (data.relatorio || []).find((r) => r.erro);
+    aviso(erro ? "⚠️ " + erro.conta + ": " + erro.erro : `${data.classificados || 0} e-mail(s) novo(s) · ${data.tarefas_criadas || 0} tarefa(s) criada(s)`);
+  }
+  await carregar();
+}
+
+function abrirEmails() {
+  opcoesAreas($("conta-area"));
+  $("conta-area").options[0].textContent = "Mista (a Central decide)";
+  $("conta-area").value = "";
+  desenharContas();
+  $("dlg-emails").showModal();
+}
+$("emails-fechar").onclick = () => $("dlg-emails").close();
+$("form-conta").onsubmit = async (ev) => {
+  ev.preventDefault();
+  const f = ev.target;
+  $("conta-ligar").disabled = true;
+  const { data: id, error } = await db.rpc("central_email_conectar", { p_email: f.email.value.trim(), p_senha: f.email.value.includes("gmail") ? f.senha.value.replace(/\s+/g, "") : f.senha.value, p_area_id: f.area.value || null });
+  $("conta-ligar").disabled = false;
+  if (error) return aviso(error.message);
+  f.reset(); $("conta-area").value = "";
+  await carregarEmails();
+  verificarEmails(id);
+};
+
 function desenharChips() {
   const g = contar(null);
   const alerta = (n) => (n ? `<span class="n">${n}!</span>` : "");
@@ -530,9 +673,10 @@ function desenharChips() {
     if (filtro && familia(p.id).includes(filtro))
       for (const f of filhas(p.id)) h += `<button class="${filtro === f.id ? "ativo" : ""}" data-area="${f.id}">↳ ${esc(f.nome)}${alerta(contar([f.id]).atrasadas)}</button>`;
   }
+  h += `<button data-emails="1">✉️ E-mails${contasEmail.some((c) => c.erro) ? '<span class="n">!</span>' : ""}</button>`;
   h += `<button data-organizar="1">⚙️ Áreas</button>`;
   $("chips").innerHTML = h;
-  $("chips").querySelectorAll("button").forEach((b) => (b.onclick = () => b.dataset.organizar ? abrirAreas() : escolher(b.dataset.area || null)));
+  $("chips").querySelectorAll("button").forEach((b) => (b.onclick = () => b.dataset.emails ? abrirEmails() : b.dataset.organizar ? abrirAreas() : escolher(b.dataset.area || null)));
   const ativo = $("chips").querySelector(".ativo");
   if (ativo) $("chips").scrollLeft = ativo.offsetLeft - $("chips").clientWidth / 2 + ativo.clientWidth / 2;
 }
@@ -548,6 +692,16 @@ function ligarItens() {
     const t = tarefas.find((x) => x.id === el.dataset.id);
     el.querySelector(".check").onclick = () => marcar(t, !t.feita);
     el.querySelector(".corpo").onclick = () => abrirTarefa(t);
+  });
+  document.querySelectorAll("[data-abrir-emails]").forEach((b) => (b.onclick = abrirEmails));
+  document.querySelectorAll(".mail[data-mail]").forEach((el) => {
+    el.querySelector(".corpo").onclick = () => el.classList.toggle("aberto");
+    el.querySelector(".visto").onclick = async () => {
+      const id = el.dataset.mail;
+      const { error } = await db.from("central_emails").update({ visto: true }).eq("id", id);
+      if (error) return aviso(error.message);
+      emails = emails.filter((e) => e.id !== id); desenhar();
+    };
   });
   const salvar = $("ical-salvar");
   if (salvar) salvar.onclick = async () => {
