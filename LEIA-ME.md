@@ -12,7 +12,9 @@ Construída por etapas (plano de 29/10/2026):
 6. Resumo automático de manhã e à noite
 
 ## Onde está cada coisa
-- Tela: `index.html` (um arquivo só, login do Supabase, mesmo visual do CRM Aluguel).
+- Tela: `index.html` (um arquivo só, login do Supabase). Visual **"Jarvis + Vidro"**, escolhido pelo Marco em 29/10/2026:
+  vidro fosco sobre luzes coloridas, núcleo de voz com anéis, relógio e linha do tempo de HUD. Fontes: Sora (texto),
+  **Chakra Petch** (números e títulos) e JetBrains Mono (detalhes). As opções que ele viu estão em `opcoes/`.
   Preview no Mac: launch.json `central`, porta 8896.
 - Função `central-agenda` (`supabase/functions/central-agenda/index.ts`), projeto `jgdbnkwhmesgjvsymgma`, com verify_jwt ligado.
   Ela lê o Google Agenda pelo **endereço secreto iCal** guardado em `central_config` (chave `google_ical`).

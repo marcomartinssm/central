@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Central · comparação de fontes</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600&family=Orbitron:wght@600;700&family=Exo+2:wght@600;700&family=Chakra+Petch:wght@600;700&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: radial-gradient(circle at 10% 0%, #4a1630, transparent 50%), radial-gradient(circle at 90% 30%, #2a1c7a, transparent 50%), radial-gradient(circle at 40% 100%, #064a5e, transparent 55%), #06070d;
+    color: #f2f4fa; font: 15px Sora, sans-serif; padding: 26px 16px 50px; min-height: 100vh; }
+  main { max-width: 900px; margin: 0 auto; }
+  h1 { font-weight: 300; font-size: 24px; margin: 0 0 4px; } p.sub { color: rgba(222,232,245,.6); margin: 0 0 22px; }
+  .op { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.13); border-radius: 22px; padding: 18px 22px; margin-bottom: 16px; backdrop-filter: blur(20px); }
+  .op.atual { opacity: .75; }
+  .nome { display: flex; justify-content: space-between; align-items: baseline; font: 13px "JetBrains Mono"; color: rgba(222,232,245,.6); margin-bottom: 12px; }
+  .nome b { font: 600 15px Sora; color: #fff; }
+  .linha { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+  .relogio { font-size: 34px; font-weight: 700; color: #4ff3ff; text-shadow: 0 0 16px rgba(79,243,255,.55); }
+  .nums { display: flex; gap: 10px; }
+  .nums div { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 14px; padding: 8px 14px; text-align: center; }
+  .nums b { display: block; font-size: 28px; font-weight: 700; color: #4ff3ff; text-shadow: 0 0 12px rgba(79,243,255,.5); line-height: 1.2; }
+  .nums .r b { color: #ff6b81; text-shadow: 0 0 12px rgba(255,107,129,.5); }
+  .nums span { font: 10px "JetBrains Mono"; letter-spacing: .12em; color: rgba(222,232,245,.6); }
+  .titulos { font-size: 13px; font-weight: 700; letter-spacing: .22em; color: #4ff3ff; margin-top: 12px; }
+  .titulos span { color: rgba(222,232,245,.55); margin-left: 18px; }
+</style>
+</head>
+<body><main>
+<h1>Qual fonte fica melhor?</h1>
+<p class="sub">Só muda a fonte do relógio, dos números e dos títulos. O resto continua igual.</p>
+<div id="lista"></div>
+</main>
+<script>
+const ops = [
+  ["Orbitron", "Atual", "a que está hoje", "atual"],
+  ["Exo 2", "A · Exo 2", "futurista, mas mais suave e fácil de ler"],
+  ["Chakra Petch", "B · Chakra Petch", "cara de painel de nave, cantos retos"],
+  ["Space Grotesk", "C · Space Grotesk", "moderna e limpa, estilo apps novos"],
+];
+document.getElementById("lista").innerHTML = ops.map(([f, t, d, c]) => `
+  <div class="op ${c || ""}" style="--f:'${f}'">
+    <div class="nome"><b>${t}</b>${d}</div>
+    <div class="linha" style="font-family:'${f}',sans-serif">
+      <div class="relogio">21:41:20</div>
+      <div class="nums"><div><b>17</b><span>ABERTAS</span></div><div><b>05</b><span>HOJE</span></div><div class="r"><b>02</b><span>ATRASADAS</span></div><div><b>12</b><span>FEITAS</span></div></div>
+    </div>
+    <div class="titulos" style="font-family:'${f}',sans-serif">HOJE <span>PRÓXIMOS DIAS</span> <span>SÁBADO, 31</span></div>
+  </div>`).join("");
+</script>
+</body>
+</html>
