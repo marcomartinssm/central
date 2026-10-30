@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opção 4 · Jarvis + Vidro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Orbitron:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --texto: #f2f4fa; --suave: rgba(222,232,245,.6); --vidro: rgba(255,255,255,.06); --borda: rgba(255,255,255,.13); --ciano: #4ff3ff; --vinho: #c23b5a; --roxo: #7c4dff; --alerta: #ff6b81; --ouro: #ffd27a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; color: var(--texto); font: 400 15px/1.5 Sora, sans-serif; background: #06070d; overflow-x: hidden; }
+  .mono { font-family: "JetBrains Mono", monospace; }
+
+  /* fundo: luzes coloridas (vidro) + grade de HUD (jarvis) */
+  .aurora { position: fixed; inset: -20%; z-index: 0; filter: blur(100px); opacity: .6; pointer-events: none; }
+  .aurora i { position: absolute; border-radius: 50%; animation: flutua 24s ease-in-out infinite alternate; }
+  .aurora i:nth-child(1) { width: 50vw; height: 50vw; background: #7a1f3d; left: 0; top: 0; }
+  .aurora i:nth-child(2) { width: 45vw; height: 45vw; background: #3d2bb3; right: 0; top: 15%; animation-delay: -8s; }
+  .aurora i:nth-child(3) { width: 40vw; height: 40vw; background: #06718f; left: 35%; bottom: 0; animation-delay: -16s; }
+  @keyframes flutua { to { transform: translate(7vw, 5vh) scale(1.12); } }
+  .grade-hud { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .18;
+    background: linear-gradient(rgba(79,243,255,.35) 1px, transparent 1px) 0 0 / 56px 56px, linear-gradient(90deg, rgba(79,243,255,.35) 1px, transparent 1px) 0 0 / 56px 56px;
+    mask-image: radial-gradient(ellipse at 50% 20%, #000 20%, transparent 75%); }
+
+  .tela { position: relative; z-index: 1; max-width: 1220px; margin: 0 auto; padding: 26px 24px 100px; }
+  .vidro { position: relative; background: var(--vidro); border: 1px solid var(--borda); border-radius: 26px; backdrop-filter: blur(26px) saturate(140%); -webkit-backdrop-filter: blur(26px) saturate(140%);
+    box-shadow: 0 20px 60px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.1); }
+  /* cantoneiras de HUD nos cartões */
+  .hud::before, .hud::after { content: ""; position: absolute; width: 18px; height: 18px; border: 2px solid var(--ciano); opacity: .8; filter: drop-shadow(0 0 4px var(--ciano)); }
+  .hud::before { top: 10px; left: 10px; border-right: 0; border-bottom: 0; border-top-left-radius: 8px; }
+  .hud::after { bottom: 10px; right: 10px; border-left: 0; border-top: 0; border-bottom-right-radius: 8px; }
+
+  header { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-weight: 300; font-size: clamp(28px, 4.6vw, 46px); letter-spacing: -.02em; }
+  header h1 b { font-weight: 700; background: linear-gradient(90deg, #ff9db3, #b9a2ff, var(--ciano)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  header p { margin: 2px 0 0; color: var(--suave); }
+  .hora { text-align: right; }
+  .relogio { font: 700 34px Orbitron, sans-serif; color: var(--ciano); text-shadow: 0 0 18px rgba(79,243,255,.6); letter-spacing: .04em; }
+  .status { font: 11px "JetBrains Mono"; color: var(--suave); letter-spacing: .12em; }
+  .ponto { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #39ff9c; box-shadow: 0 0 8px #39ff9c; margin-right: 6px; animation: pisca 2s infinite; }
+  @keyframes pisca { 50% { opacity: .3; } }
+
+  /* núcleo de voz */
+  .assistente { display: grid; grid-template-columns: 230px 1fr; gap: 26px; align-items: center; padding: 22px 30px; margin-bottom: 20px; }
+  .orbe { position: relative; width: 210px; height: 210px; display: grid; place-items: center; cursor: pointer; margin: auto; }
+  .anel { position: absolute; inset: 0; border-radius: 50%; }
+  .anel.a1 { border: 2px dashed rgba(79,243,255,.4); animation: gira 20s linear infinite; }
+  .anel.a2 { inset: 16px; border: 3px solid transparent; border-top-color: var(--ciano); border-bottom-color: #b98cff; animation: gira 6s linear infinite reverse; filter: drop-shadow(0 0 8px var(--ciano)); }
+  .anel.a3 { inset: 36px; border: 1px solid rgba(255,255,255,.18); }
+  .centro { width: 108px; height: 108px; border-radius: 50%; display: grid; place-items: center; font-size: 34px; position: relative;
+    background: conic-gradient(from 0deg, #ff6b8b, #a46bff, var(--ciano), #ff6b8b); animation: gira 7s linear infinite; box-shadow: 0 0 50px rgba(79,243,255,.45), 0 0 90px rgba(164,107,255,.3); }
+  .centro::after { content: "🎙️"; position: absolute; inset: 6px; border-radius: 50%; background: radial-gradient(circle, rgba(20,16,36,.7), rgba(8,10,20,.92)); display: grid; place-items: center; animation: gira 7s linear infinite reverse; }
+  @keyframes gira { to { transform: rotate(360deg); } }
+  .dica { font: 11px "JetBrains Mono"; letter-spacing: .2em; color: var(--suave); text-align: center; margin-top: 8px; }
+  .entrada { display: flex; align-items: center; gap: 10px; border-radius: 999px; padding: 6px 6px 6px 20px; background: rgba(0,0,0,.25); border: 1px solid rgba(79,243,255,.3); }
+  .entrada input { flex: 1; background: none; border: 0; outline: none; color: var(--texto); font: 300 17px Sora; min-width: 0; }
+  .entrada input::placeholder { color: var(--suave); }
+  .entrada button { border: 0; border-radius: 999px; padding: 11px 22px; font: 600 14px Sora; color: #fff; cursor: pointer; background: linear-gradient(90deg, var(--vinho), var(--roxo)); }
+  .conversa { margin-top: 16px; }
+  .conversa .voce { font: 12px "JetBrains Mono"; color: var(--suave); }
+  .conversa .ia { margin-top: 6px; padding-left: 12px; border-left: 2px solid var(--ciano); font-size: 16px; }
+
+  .numeros { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+  .num { padding: 16px 20px; border-radius: 20px; }
+  .num b { display: block; font: 700 34px Orbitron; color: var(--ciano); text-shadow: 0 0 16px rgba(79,243,255,.5); }
+  .num.vermelho b { color: var(--alerta); text-shadow: 0 0 16px rgba(255,107,129,.5); }
+  .num span { font: 11px "JetBrains Mono"; letter-spacing: .14em; color: var(--suave); text-transform: uppercase; }
+
+  .areas { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 20px; }
+  .ar { padding: 18px 14px; text-align: center; border-radius: 22px; cursor: pointer; transition: transform .2s; }
+  .ar:hover { transform: translateY(-3px); }
+  .anelzinho { width: 70px; height: 70px; margin: 0 auto 10px; border-radius: 50%; display: grid; place-items: center; font-size: 25px; position: relative; }
+  .anelzinho::before { content: ""; position: absolute; inset: 0; border-radius: 50%; padding: 3px; background: conic-gradient(var(--c) var(--p), rgba(255,255,255,.1) 0);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; filter: drop-shadow(0 0 5px var(--c)); }
+  .ar b { display: block; font-size: 14px; font-weight: 600; }
+  .ar small { color: var(--suave); font-size: 12px; }
+  .ar small.vermelho { color: var(--alerta); }
+
+  .duas { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; }
+  .card { padding: 24px 26px; }
+  .card + .card { margin-top: 20px; }
+  .card h2 { margin: 0 0 14px; font: 600 12px Orbitron; letter-spacing: .22em; color: var(--ciano); display: flex; justify-content: space-between; }
+  .card h2 span { font: 12px "JetBrains Mono"; letter-spacing: 0; color: var(--suave); }
+  .card.alerta h2 { color: var(--alerta); }
+  .card.alerta.hud::before, .card.alerta.hud::after { border-color: var(--alerta); filter: drop-shadow(0 0 4px var(--alerta)); }
+
+  .tempo { position: relative; padding-left: 26px; }
+  .tempo::before { content: ""; position: absolute; left: 6px; top: 8px; bottom: 8px; width: 1px; background: linear-gradient(var(--ciano), rgba(185,140,255,.4), transparent); }
+  .ev { position: relative; display: flex; gap: 14px; align-items: center; padding: 10px 12px; margin: 0 -12px 0 -12px; border-radius: 14px; }
+  .ev:hover { background: rgba(255,255,255,.05); }
+  .ev::before { content: ""; position: absolute; left: -15px; top: 50%; width: 9px; height: 9px; transform: translateY(-50%) rotate(45deg); border: 1px solid var(--ciano); background: #0b0d18; }
+  .ev.agenda::before { background: var(--ciano); box-shadow: 0 0 10px var(--ciano); }
+  .ev.feita::before { background: #b98cff; border-color: #b98cff; }
+  .ev .h { font: 600 13px "JetBrains Mono"; color: var(--ciano); width: 46px; flex: none; }
+  .ev .t { flex: 1; }
+  .ev.feita .t { text-decoration: line-through; color: var(--suave); }
+  .ev .tag { font-size: 12px; color: var(--suave); padding: 2px 10px; border-radius: 999px; background: rgba(255,255,255,.07); white-space: nowrap; }
+  .estrela { color: var(--ouro); }
+  .dia { font: 600 11px Orbitron; letter-spacing: .2em; color: var(--suave); margin: 14px 0 2px; text-transform: uppercase; }
+  .dia:first-child { margin-top: 0; }
+  .atr { padding: 12px 14px; border-radius: 16px; background: rgba(255,107,129,.1); border: 1px solid rgba(255,107,129,.25); margin-bottom: 10px; }
+  .atr small { display: block; font: 11px "JetBrains Mono"; color: var(--alerta); }
+
+  @media (max-width: 960px) { .duas { grid-template-columns: minmax(0, 1fr); } .areas { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 640px) {
+    .tela { padding: 18px 16px 80px; }
+    header { align-items: flex-start; } .hora { text-align: left; } .relogio { font-size: 26px; }
+    .assistente { grid-template-columns: 1fr; padding: 22px 18px; gap: 14px; }
+    .orbe { width: 170px; height: 170px; } .centro { width: 90px; height: 90px; }
+    .entrada button { display: none; }
+    .numeros { grid-template-columns: repeat(2, 1fr); }
+    .areas { grid-template-columns: repeat(2, 1fr); }
+    .card { padding: 22px 18px; }
+    .ev .tag { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="aurora"><i></i><i></i><i></i></div>
+<div class="grade-hud"></div>
+<div class="tela">
+  <header>
+    <div><h1 id="saudacao"></h1><p id="data"></p></div>
+    <div class="hora"><div class="relogio" id="relogio"></div><div class="status"><span class="ponto"></span>ONLINE · AGENDA SINCRONIZADA</div></div>
+  </header>
+
+  <div class="assistente vidro hud">
+    <div><div class="orbe"><div class="anel a1"></div><div class="anel a2"></div><div class="anel a3"></div><div class="centro"></div></div><div class="dica">TOQUE E FALE</div></div>
+    <div>
+      <div class="entrada"><input placeholder="Fale ou escreva o que precisa…"><button>Enviar</button></div>
+      <div class="conversa" id="conversa"></div>
+    </div>
+  </div>
+
+  <div class="numeros" id="numeros"></div>
+  <div class="areas" id="areas"></div>
+
+  <div class="duas">
+    <div class="card vidro hud"><h2>HOJE <span id="n-hoje"></span></h2><div class="tempo" id="hoje"></div></div>
+    <div>
+      <div class="card vidro hud alerta"><h2>ATRASADAS <span id="n-atr"></span></h2><div id="atrasadas"></div></div>
+      <div class="card vidro"><h2>PRÓXIMOS DIAS</h2><div class="tempo" id="semana"></div></div>
+    </div>
+  </div>
+</div>
+<script src="dados.js"></script>
+<script>
+const D = DADOS, $ = (id) => document.getElementById(id);
+const tick = () => $("relogio").textContent = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+tick(); setInterval(tick, 1000);
+const [oi, nome] = D.saudacao.split(", ");
+$("saudacao").innerHTML = `${oi}, <b>${nome}</b>`;
+$("data").textContent = D.data;
+$("conversa").innerHTML = `<div class="voce">&gt; ${D.ultimaFala.voce}</div><div class="ia">${D.ultimaFala.central}</div>`;
+$("numeros").innerHTML = [["abertas", D.numeros.abertas], ["hoje", D.numeros.hoje], ["atrasadas", D.numeros.atrasadas, "vermelho"], ["feitas na semana", D.numeros.feitasSemana]]
+  .map(([r, n, c]) => `<div class="num vidro ${c || ""}"><b>${String(n).padStart(2, "0")}</b><span>${r}</span></div>`).join("");
+const cores = ["#ff8fab", "#4ff3ff", "#ffb35c", "#4fd1a5", "#b98cff"];
+const max = Math.max(...D.areas.map((a) => a.abertas));
+$("areas").innerHTML = D.areas.map((a, i) => `<div class="ar vidro"><div class="anelzinho" style="--c:${cores[i]};--p:${a.abertas / max * 100}%">${a.icone}</div><b>${a.nome}</b>
+  <small class="${a.atrasadas ? "vermelho" : ""}">${a.atrasadas ? a.atrasadas + " atrasada · " : ""}${a.abertas} abertas</small></div>`).join("");
+const ev = (i) => `<div class="ev ${i.tipo} ${i.feita ? "feita" : ""}"><span class="h">${i.hora || "--:--"}</span><span class="t">${i.importante ? '<span class="estrela">★</span> ' : ""}${i.titulo}</span>${i.area ? `<span class="tag">${i.area}</span>` : ""}</div>`;
+$("hoje").innerHTML = D.hoje.map(ev).join(""); $("n-hoje").textContent = D.hoje.length + " itens";
+$("semana").innerHTML = D.semana.map((d) => `<div class="dia">${d.dia}</div>${d.itens.map(ev).join("")}`).join("");
+$("n-atr").textContent = D.atrasadas.length;
+$("atrasadas").innerHTML = D.atrasadas.map((a) => `<div class="atr">${a.importante ? '<span class="estrela">★</span> ' : ""}${a.titulo}<small>${a.area} · venceu ${a.quando}</small></div>`).join("");
+</script>
+</body>
+</html>
