@@ -203,6 +203,7 @@
   .mail.aberto .detalhe { display: block; }
   .mail .visto { flex: none; border: 1px solid var(--borda); background: rgba(255,255,255,.05); border-radius: 10px; padding: 4px 9px; font-size: 12px; color: var(--suave); }
   .mail .visto:hover { border-color: var(--ciano); color: var(--texto); }
+  .acoes-wa { display: flex; flex-direction: column; gap: 4px; flex: none; }
   .selo { flex: none; font: 600 10px var(--mono); letter-spacing: .08em; text-transform: uppercase; padding: 3px 7px; border-radius: 8px; margin-top: 2px; }
   .selo.acao { background: rgba(255,107,129,.16); color: var(--alerta); }
   .selo.importante { background: rgba(255,210,122,.14); color: var(--ouro); }
@@ -362,6 +363,17 @@
       <button class="principal" type="submit" id="conta-ligar">Ligar e-mail</button>
     </div>
   </form>
+</dialog>
+
+<dialog id="dlg-responder">
+  <h3>Responder no WhatsApp</h3>
+  <p class="vazio" id="responder-para"></p>
+  <label>Mensagem</label>
+  <textarea id="responder-texto" rows="4"></textarea>
+  <div class="botoes">
+    <button type="button" class="botao" id="responder-cancelar">Cancelar</button>
+    <button type="button" class="principal" id="responder-enviar">Enviar</button>
+  </div>
 </dialog>
 
 <div class="aviso" id="aviso"></div>
@@ -632,16 +644,36 @@ function blocoWhatsapp(ids) {
     const conta = contasWa.find((x) => x.instancia === c.instancia);
     const meta = [`<span>${esc(c.nome || c.numero || "Contato")}</span>`, `<span>${quandoFoi(c.ultima_em)}</span>`, `<span class="tag">📱 ${esc(conta?.apelido || c.instancia)}</span>`];
     if (c.area_id && (!filtro || familia(filtro).length > 1)) meta.push(`<span class="tag">${esc(nomeArea(c.area_id))}</span>`);
-    if (c.tarefa_id) meta.push(`<span class="tag">✓ virou tarefa</span>`);
     return `<div class="mail" data-wa="${c.id}"><span class="selo ${c.categoria}">${SELO[c.categoria] || c.categoria}</span>
       <div class="corpo"><div class="resumo-mail">${esc(c.resumo || c.nome || "Conversa")}</div><div class="meta">${meta.join("")}</div>
       <div class="detalhe">${esc(c.trecho || "")}</div></div>
-      <button class="visto" title="Já vi, tirar da lista">visto</button></div>`;
+      <div class="acoes-wa"><button class="visto responder" title="Escrever uma resposta">responder</button><button class="visto marcar" title="Já vi, tirar da lista">visto</button></div></div>`;
   }).join("");
   const mais = lista.length > 15 ? `<p class="vazio">+ ${lista.length - 15} mais antigas</p>` : "";
   return `<div class="card vidro hud"><h3>WhatsApp <span>${lista.length} conversa${lista.length === 1 ? "" : "s"}${problema.length ? ` · ⚠️ ${problema.map((c) => esc(c.apelido)).join(", ")} com problema` : ""}</span></h3>
     ${linhas || `<p class="vazio">Nada novo que precise de atenção.</p>`}${mais}</div>`;
 }
+
+let respondendo = null;
+function abrirResponder(c) {
+  respondendo = c;
+  const conta = contasWa.find((x) => x.instancia === c.instancia);
+  $("responder-para").textContent = `Para ${c.nome || c.numero || "Contato"}${c.numero ? " (" + c.numero + ")" : ""}, saindo do WhatsApp ${conta?.apelido || c.instancia}`;
+  $("responder-texto").value = "";
+  $("dlg-responder").showModal();
+}
+$("responder-cancelar").onclick = () => $("dlg-responder").close();
+$("responder-enviar").onclick = async () => {
+  const texto = $("responder-texto").value.trim();
+  if (!texto) return aviso("Escreva a mensagem");
+  $("responder-enviar").disabled = true;
+  const { data, error } = await db.functions.invoke("central-whatsapp-enviar", { body: { conversa_id: respondendo.id, texto } });
+  $("responder-enviar").disabled = false;
+  if (error || !data?.ok) return aviso("Não enviou. Tente de novo.");
+  $("dlg-responder").close();
+  aviso("Mensagem enviada");
+  conversasWa = conversasWa.filter((c) => c.id !== respondendo.id); desenhar();
+};
 
 function quandoFoi(iso) {
   const min = Math.round((Date.now() - new Date(iso)) / 60000);
@@ -739,7 +771,8 @@ function ligarItens() {
   });
   document.querySelectorAll(".mail[data-wa]").forEach((el) => {
     el.querySelector(".corpo").onclick = () => el.classList.toggle("aberto");
-    el.querySelector(".visto").onclick = async () => {
+    el.querySelector(".responder").onclick = () => abrirResponder(conversasWa.find((c) => c.id === el.dataset.wa));
+    el.querySelector(".marcar").onclick = async () => {
       const id = el.dataset.wa;
       const { error } = await db.from("central_wa_conversas").update({ visto: true }).eq("id", id);
       if (error) return aviso(error.message);

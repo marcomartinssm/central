@@ -53,4 +53,6 @@ Foi decisão do Marco começar do zero.
 - Tabelas `central_wa_contas` (instâncias marco-teste e Seguralta) e `central_wa_conversas` (1 linha por conversa).
 - Função `central-whatsapp` (verify_jwt false; `?token=` ou dono). Só lê pela Evolution, sem webhook; só conversas individuais (grupos fora); áudio não é ouvido.
 - Agendador: `central-whatsapp` nos minutos 5, 20, 35, 50. Se a classificação falha, o marcador `ultimo_ts` não avança.
-- Tela: quadro "WhatsApp" na coluna da direita. Envio de mensagens ainda não existe.
+- Tela: quadro "WhatsApp" na coluna da direita, com botões "responder" e "visto".
+- Não cria tarefas nem lê a conversa entre os dois números do Marco (pedido dele, 31/10/2026).
+- Envio: função `central-whatsapp-enviar` (verify_jwt true, só o dono logado). Só para conversa que já existe na Central; cada clique em Enviar manda uma mensagem; histórico em `central_wa_envios`.

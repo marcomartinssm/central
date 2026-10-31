@@ -1,5 +1,5 @@
 // Central do Marco — lê as conversas novas dos WhatsApps do Marco pela Evolution (só leitura; nada é enviado aqui),
-// o Claude separa o que importa, põe na área certa e cria tarefa quando há algo a fazer.
+// o Claude separa o que importa e põe na área certa. Não cria tarefas (pedido do Marco, 31/10/2026).
 // Chamada pelo agendador (?token= de central_config.cron_token) a cada 15 min, ou pela tela ("Verificar agora").
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 import Anthropic from "npm:@anthropic-ai/sdk";
@@ -10,6 +10,7 @@ const PRIMEIRA_VEZ_HORAS = 24;  // na 1ª leitura, só as últimas 24 horas
 const MAX_PAGINAS = 8, POR_PAGINA = 200;
 const MAX_CONVERSAS = 40;       // por rodada, as mais recentes
 const MSGS_POR_CONVERSA = 20;
+const MEUS_NUMEROS = ["554899416383", "554891002530"];  // conversa entre os números do Marco (Radar) fica de fora
 const anthropic = new Anthropic({ apiKey: Deno.env.get("ANTHROPIC_API_KEY") ?? "" });
 const chave = Deno.env.get("EVOLUTION_API_KEY") ?? "";
 
@@ -122,6 +123,7 @@ Deno.serve(async (req) => {
           maior = Math.max(maior, ts);
           const jid = m.key?.remoteJidAlt?.includes("@s.whatsapp.net") ? m.key.remoteJidAlt : m.key?.remoteJid;
           if (!jid || jid.endsWith("@g.us") || jid.endsWith("@broadcast") || jid.endsWith("@newsletter")) continue;  // só conversas individuais
+          if (MEUS_NUMEROS.some((n) => jid.startsWith(n + "@"))) continue;
           if (!porChat.has(jid)) porChat.set(jid, []);
           porChat.get(jid)!.push(m);
         }
@@ -174,31 +176,17 @@ Deno.serve(async (req) => {
     return resposta({ relatorio, erro_classificacao: String((e as Error).message ?? e).slice(0, 200) });
   }
 
-  // 3) grava e cria as tarefas (uma conversa só tem uma tarefa aberta por vez)
+  // 3) grava
   const idsArea = new Set((areas ?? []).map((a) => a.id));
-  let tarefas = 0;
   for (let i = 0; i < conversas.length; i++) {
     const c = conversas[i], r = itens.find((x) => x.n === i) ?? {};
     const area = idsArea.has(r.area_id) ? r.area_id : c.conta.area_id;
-    const { data: antiga } = await admin.from("central_wa_conversas").select("tarefa_id, central_tarefas(feita)").eq("instancia", c.conta.instancia).eq("jid", c.jid).maybeSingle();
-    let tarefa_id = (antiga as any)?.tarefa_id ?? null;
-    const aberta = tarefa_id && (antiga as any)?.central_tarefas?.feita === false;
-    if (r.categoria === "acao" && r.tarefa_titulo && !aberta) {
-      const { data: t } = await admin.from("central_tarefas").insert({
-        titulo: r.tarefa_titulo.slice(0, 300), area_id: area,
-        data: /^\d{4}-\d{2}-\d{2}$/.test(r.tarefa_data) ? r.tarefa_data : null,
-        hora: /^\d{2}:\d{2}$/.test(r.tarefa_hora) ? r.tarefa_hora : null,
-        importante: !!r.importante, origem: "whatsapp",
-        notas: `WhatsApp ${c.conta.apelido}: ${c.nome || c.numero}\n\n${r.resumo ?? ""}`,
-      }).select("id").single();
-      if (t?.id) { tarefa_id = t.id; tarefas++; }
-    }
     await admin.from("central_wa_conversas").upsert({
       instancia: c.conta.instancia, jid: c.jid, numero: c.numero || null, nome: c.nome || null, ultima_em: new Date(c.ts * 1000).toISOString(), ultima_minha: c.minha,
-      trecho: c.msgs.slice(-8).join("\n").slice(0, 1500), resumo: r.resumo || null, categoria: r.categoria || "informativo", area_id: area, tarefa_id,
+      trecho: c.msgs.slice(-8).join("\n").slice(0, 1500), resumo: r.resumo || null, categoria: r.categoria || "informativo", area_id: area,
       visto: r.categoria === "ignorar", atualizado_em: new Date().toISOString(),
     }, { onConflict: "instancia,jid" });
   }
   await avancar();
-  return resposta({ relatorio, classificadas: conversas.length, tarefas_criadas: tarefas });
+  return resposta({ relatorio, classificadas: conversas.length });
 });
