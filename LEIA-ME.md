@@ -48,3 +48,9 @@ Foi decisão do Marco começar do zero.
 - Agendador: `cron.schedule('central-emails', '*/15 * * * *', 'select public.central_chamar_emails()')`.
 - Tela: botão "✉️ E-mails" (ligar/desligar contas, verificar agora) e o quadro "E-mails" na coluna da direita (botão "visto").
 - Gmail precisa de senha de app; @seguralta.com.br usa mail.claramail.com.br com a senha normal.
+
+## Etapa 3 — WhatsApp (leitura)
+- Tabelas `central_wa_contas` (instâncias marco-teste e Seguralta) e `central_wa_conversas` (1 linha por conversa).
+- Função `central-whatsapp` (verify_jwt false; `?token=` ou dono). Só lê pela Evolution, sem webhook; só conversas individuais (grupos fora); áudio não é ouvido.
+- Agendador: `central-whatsapp` nos minutos 5, 20, 35, 50. Se a classificação falha, o marcador `ultimo_ts` não avança.
+- Tela: quadro "WhatsApp" na coluna da direita. Envio de mensagens ainda não existe.

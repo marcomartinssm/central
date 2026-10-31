@@ -382,6 +382,8 @@ let agendaConectada = null;
 let agendaErro = "";
 let contasEmail = [];  // contas de e-mail ligadas
 let emails = [];       // e-mails ainda não vistos (sem os ignorados)
+let contasWa = [];     // WhatsApps monitorados
+let conversasWa = [];  // conversas ainda não vistas (sem as ignoradas)
 let filtro = null;     // id da área escolhida (null = visão geral)
 let editando = null;
 
@@ -449,6 +451,17 @@ async function carregar() {
   desenhar();
   carregarAgenda();
   carregarEmails();
+  carregarWhatsapp();
+}
+
+async function carregarWhatsapp() {
+  const [rc, rw] = await Promise.all([
+    db.from("central_wa_contas").select("instancia, apelido, lido_em, erro").eq("ativo", true),
+    db.from("central_wa_conversas").select("*").eq("visto", false).neq("categoria", "ignorar").order("ultima_em", { ascending: false }).limit(80),
+  ]);
+  if (rc.error || rw.error) return;
+  contasWa = rc.data; conversasWa = rw.data;
+  desenhar();
 }
 
 async function carregarEmails() {
@@ -534,7 +547,7 @@ function desenhar() {
   esq += `<div class="card vidro"><h3>Próximos 7 dias</h3><div class="tempo">${prox || `<p class="vazio">Nada nos próximos dias.</p>`}</div></div>`;
 
   // coluna da direita: atrasadas, mais pra frente, sem data
-  let dir = blocoEmails(ids);
+  let dir = blocoEmails(ids) + blocoWhatsapp(ids);
   const atrasadas = abertas.filter((t) => t.data && t.data < h);
   if (atrasadas.length) dir += `<div class="card vidro hud alerta"><h3>Atrasadas <span>${atrasadas.length}</span></h3>${atrasadas.map((t) => linhaTarefa(t, "atraso")).join("")}</div>`;
   const depois = abertas.filter((t) => t.data && t.data > fimSemana);
@@ -607,6 +620,27 @@ function blocoEmails(ids) {
   return `<div class="card vidro hud"><h3>E-mails <span>${lista.length} novo${lista.length === 1 ? "" : "s"}${comErro ? ` · ⚠️ ${comErro} com problema` : ""}</span></h3>
     ${linhas || `<p class="vazio">Nada novo que precise de atenção.</p>`}${mais}
     <button class="link" data-abrir-emails="1">✉️ Contas de e-mail</button></div>`;
+}
+
+function blocoWhatsapp(ids) {
+  if (!contasWa.length) return "";
+  const lista = conversasWa.filter((c) => ids === null || ids.includes(c.area_id));
+  const ordem = { acao: 0, importante: 1, informativo: 2 };
+  lista.sort((a, b) => (ordem[a.categoria] ?? 3) - (ordem[b.categoria] ?? 3) || String(b.ultima_em).localeCompare(String(a.ultima_em)));
+  const problema = contasWa.filter((c) => c.erro);
+  const linhas = lista.slice(0, 15).map((c) => {
+    const conta = contasWa.find((x) => x.instancia === c.instancia);
+    const meta = [`<span>${esc(c.nome || c.numero || "Contato")}</span>`, `<span>${quandoFoi(c.ultima_em)}</span>`, `<span class="tag">📱 ${esc(conta?.apelido || c.instancia)}</span>`];
+    if (c.area_id && (!filtro || familia(filtro).length > 1)) meta.push(`<span class="tag">${esc(nomeArea(c.area_id))}</span>`);
+    if (c.tarefa_id) meta.push(`<span class="tag">✓ virou tarefa</span>`);
+    return `<div class="mail" data-wa="${c.id}"><span class="selo ${c.categoria}">${SELO[c.categoria] || c.categoria}</span>
+      <div class="corpo"><div class="resumo-mail">${esc(c.resumo || c.nome || "Conversa")}</div><div class="meta">${meta.join("")}</div>
+      <div class="detalhe">${esc(c.trecho || "")}</div></div>
+      <button class="visto" title="Já vi, tirar da lista">visto</button></div>`;
+  }).join("");
+  const mais = lista.length > 15 ? `<p class="vazio">+ ${lista.length - 15} mais antigas</p>` : "";
+  return `<div class="card vidro hud"><h3>WhatsApp <span>${lista.length} conversa${lista.length === 1 ? "" : "s"}${problema.length ? ` · ⚠️ ${problema.map((c) => esc(c.apelido)).join(", ")} com problema` : ""}</span></h3>
+    ${linhas || `<p class="vazio">Nada novo que precise de atenção.</p>`}${mais}</div>`;
 }
 
 function quandoFoi(iso) {
@@ -701,6 +735,15 @@ function ligarItens() {
       const { error } = await db.from("central_emails").update({ visto: true }).eq("id", id);
       if (error) return aviso(error.message);
       emails = emails.filter((e) => e.id !== id); desenhar();
+    };
+  });
+  document.querySelectorAll(".mail[data-wa]").forEach((el) => {
+    el.querySelector(".corpo").onclick = () => el.classList.toggle("aberto");
+    el.querySelector(".visto").onclick = async () => {
+      const id = el.dataset.wa;
+      const { error } = await db.from("central_wa_conversas").update({ visto: true }).eq("id", id);
+      if (error) return aviso(error.message);
+      conversasWa = conversasWa.filter((c) => c.id !== id); desenhar();
     };
   });
   const salvar = $("ical-salvar");
