@@ -369,8 +369,10 @@
   <h3>Responder no WhatsApp</h3>
   <p class="vazio" id="responder-para"></p>
   <label>Mensagem</label>
-  <textarea id="responder-texto" rows="4"></textarea>
+  <textarea id="responder-texto" rows="5"></textarea>
+  <p class="ajuda" id="responder-obs"></p>
   <div class="botoes">
+    <button type="button" class="botao" id="responder-sugerir">Nova sugestão</button>
     <button type="button" class="botao" id="responder-cancelar">Cancelar</button>
     <button type="button" class="principal" id="responder-enviar">Enviar</button>
   </div>
@@ -661,8 +663,25 @@ function abrirResponder(c) {
   $("responder-para").textContent = `Para ${c.nome || c.numero || "Contato"}${c.numero ? " (" + c.numero + ")" : ""}, saindo do WhatsApp ${conta?.apelido || c.instancia}`;
   $("responder-texto").value = "";
   $("dlg-responder").showModal();
+  sugerirResposta();
 }
-$("responder-cancelar").onclick = () => $("dlg-responder").close();
+// só preenche a caixa; quem envia é o Marco, em Enviar. Se ele já começou a escrever, a sugestão não apaga o texto.
+async function sugerirResposta(trocar = false) {
+  const c = respondendo, caixa = $("responder-texto");
+  if (trocar) caixa.value = "";
+  caixa.placeholder = "Escrevendo uma sugestão...";
+  $("responder-obs").textContent = "";
+  $("responder-sugerir").disabled = true;
+  const { data, error } = await db.functions.invoke("central-whatsapp-sugerir", { body: { conversa_id: c.id } });
+  if (respondendo !== c) return;
+  $("responder-sugerir").disabled = false;
+  caixa.placeholder = "";
+  if (error || !data?.sugestao) { $("responder-obs").textContent = "Não consegui sugerir agora. Pode escrever normalmente."; return; }
+  if (!caixa.value.trim()) caixa.value = data.sugestao;
+  $("responder-obs").textContent = data.observacao ? `⚠️ ${data.observacao}` : "Sugestão: confira antes de enviar.";
+}
+$("responder-sugerir").onclick = () => sugerirResposta(true);
+$("responder-cancelar").onclick = () => { respondendo = null; $("dlg-responder").close(); };
 $("responder-enviar").onclick = async () => {
   const texto = $("responder-texto").value.trim();
   if (!texto) return aviso("Escreva a mensagem");
